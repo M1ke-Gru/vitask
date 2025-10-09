@@ -18,4 +18,4 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # If your app module is app/main.py with FastAPI instance `app`
-CMD ["bash", "-lc", "uvicorn main:app --host ${UVICORN_HOST:-0.0.0.0} --port ${UVICORN_PORT:-8000}"]
+CMD ["bash", "-lc", "uvicorn app.main:app --reload --host ${UVICORN_HOST:-0.0.0.0} --port ${UVICORN_PORT:-8000}"]
