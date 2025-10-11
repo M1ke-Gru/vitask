@@ -9,9 +9,9 @@ function sortTasks(ts) {
   });
 }
 
-export function useTasks(initial) {
+export function useTasks(initial: Array<string> | null = null) {
   const [tasks, setTasks] = useState(
-    initial ?? ["C", "E", "D", "A", "F", "B"].map(name => ({ id: nanoid(), name, isDone: false }))
+    (initial ?? ["C", "E", "D", "A", "F", "B"]).map(name => ({ id: nanoid(), name, isDone: false }))
   );
   const [showDone, setShowDone] = useState(true);
   const [draft, setDraft] = useState("");

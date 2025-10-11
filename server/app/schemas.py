@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, SecretStr, EmailStr, ConfigDict
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
 
 
 class UserBase(BaseModel):

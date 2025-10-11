@@ -5,10 +5,6 @@ import EnterTask from "./EnterTask"
 export default function TaskList({ vm }) {
   return (
     <div className="flex flex-col align-middle w-2/3 mx-auto">
-      <div className="flex flex-row space-x-3 my-2">
-        <EnterTask value={vm.draft} onChange={vm.setDraft} />
-        <AddTask add={vm.add}/>
-      </div>
 
       {vm.visible.map(t => (
         <TaskItem
@@ -19,6 +15,11 @@ export default function TaskList({ vm }) {
           onToggle={vm.toggleDone}   // child calls onToggle(id)
         />
       ))}
+
+      <div className="flex flex-row space-x-3 my-4 my-2 ">
+        <EnterTask value={vm.draft} onChange={vm.setDraft} />
+        <AddTask add={vm.add} disabled={false} />
+      </div>
     </div>
   )
 }

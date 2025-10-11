@@ -1,24 +1,23 @@
 import TaskList from "./ui/TaskList"
 import TopBar from "./ui/TopBar"
 import { useTasks } from "./logic/Tasks"
-import { useAuth } from "./logic/User"
-import LoginPopup from "./ui/LoginPopup"
+import { useAuth } from "./logic/Auth"
+import AuthPopup from "./ui/AuthPopup"
 
 
 export default function App() {
   const taskVM = useTasks()
   const userVM = useAuth()
   return (
-    <div className="justify-center w-screen h-screen bg-gray-800">
+    <div className="font-sans justify-center w-screen h-screen bg-gray-800">
       <TopBar showDone={taskVM.showDone}
         onToggleShowDone={() => taskVM.setShowDone(prev => !prev)}
-        clearFinished={taskVM.clearFinished}
+        clearDone={taskVM.clearFinished}
         username={userVM.user ? userVM.user.username : null}
-        callLogin={userVM.toggleLogin}
+        showAuth={userVM.toggleAuth}
       />
       <TaskList vm={taskVM} />
-      {userVM.logingIn && <LoginPopup close={userVM.toggleLogin} loginCallback={userVM.login}/>}
+      {userVM.authenticating && <AuthPopup/>}
     </div>
   )
 }
-

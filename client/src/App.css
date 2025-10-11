@@ -34,7 +34,7 @@
 }
 
 .btn {
-  @apply active:scale-98 rounded-xl
+  @apply active:scale-98 rounded-full
 }
 
 .card {
