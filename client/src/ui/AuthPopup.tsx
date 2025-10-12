@@ -9,16 +9,16 @@ export default function LoginPopup() {
   const [password, setPassword] = useState("");
   const [incorrectAttempt, setIncorrectAttempt] = useState(false)
   const redBorder = incorrectAttempt ? ' border-2 border-red-700' : ''
-  const textInput = 'block w-full p-2 rounded bg-gray-700 text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500' + redBorder
+  const textInput = 'block w-full p-2 rounded-lg bg-gray-700/80 border-1 border-gray-600/80 text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500' + redBorder
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
       <div className="flex items-center justify-center min-h-screen min-w-screen">
-        <div className="relative bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl p-8 w-md text-center">
+        <div className="relative bg-gray-900/50 border-1 border-gray-700 backdrop-blur-xl rounded-2xl shadow-xl p-8 w-md text-center">
 
           <button
             onClick={toggleAuth}
-            className="absolute top-4 right-4 text-blue-50 rounded-full text-xl w-8 h-8 hover:bg-gray-600 transition"
+            className="absolute top-4 right-4 text-blue-50 rounded-full text-xl w-8 h-8 hover:bg-gray-700 transition"
           >
             ✕
           </button>
@@ -54,7 +54,7 @@ export default function LoginPopup() {
               className={textInput}
             />
             <div className="w-full flex flex-column space-x-4 my-12 mb-0 text-md">
-              <button className="py-3 text-gray-100 bg-gray-600 rounded-full px-3 m-auto w-40" type="button" onClick={toggleLogingIn} > {logingIn ? "Sign up instead" : "Log in instead"} </button>
+              <button className="py-3 text-gray-100 bg-gray-700/90 rounded-full border-1 border-gray-600/90 px-3 m-auto w-40" type="button" onClick={toggleLogingIn} > {logingIn ? "Sign up instead" : "Log in instead"} </button>
               <button className="bg-blue-600 hover:bg-blue-500 active:scale-95 transition rounded-full py-3 px-3 w-40 m-auto font-semibold text-blue-50" onClick={async () => {
                 logingIn ? await loginLogic(username, password) : await signupLogic({ username, email, password })
                 user ? close() : setIncorrectAttempt(true)

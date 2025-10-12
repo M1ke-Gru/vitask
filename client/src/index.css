@@ -1,1 +1,11 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "@fontsource/satoshi/variable.css";
+
+
+@layer base {
+  html {
+    @apply font-sans;
+  }
+}

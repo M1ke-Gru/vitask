@@ -32,7 +32,7 @@ export const useAuth = create<AuthState>()(persist(
     toggleAuth: () => {
       set((state) => ({ authenticating: !state.authenticating }))
     },
-    toggleLogingIn: () => set((state) => ({ logingIn: !state.logingIn})),
+    toggleLogingIn: () => set((state) => ({ logingIn: !state.logingIn })),
     signupLogic: async (request: SignupRequest) => {
       set({ loading: true, error: null })
       try {
@@ -76,8 +76,3 @@ export const useAuth = create<AuthState>()(persist(
     },
   }
 ))
-
-
-export async function callLogin() {
-
-}

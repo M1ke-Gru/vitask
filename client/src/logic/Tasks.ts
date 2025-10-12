@@ -1,13 +1,35 @@
 import { useCallback, useMemo, useState } from "react";
 import { nanoid } from "nanoid";
+import { create } from "zustand";
 
-function sortTasks(ts) {
+type Task = {
+  id: string
+  name: string
+  isDone: boolean
+}
+
+function sortTasks(ts: Array<Task>) {
   return [...ts].sort((a, b) => {
     const aDone = a.isDone ? 1 : 0;
     const bDone = b.isDone ? 1 : 0;
     return (aDone - bDone) || a.name.localeCompare(b.name);
   });
 }
+
+const tasks = create((set) => ({
+  tasks: [],
+  showDone: true,
+  draft: "",
+
+  toggleDone: () => set((state) => {
+    showDone: !state.showDone
+  }),
+  add: () => set((state) => {
+      const name = state.draft.trim()
+      if (!name) return
+      state.tasks = [...state.tasks, {id: nanoid(), name, isDone: false}]
+  })
+}))
 
 export function useTasks(initial: Array<string> | null = null) {
   const [tasks, setTasks] = useState(
@@ -16,7 +38,7 @@ export function useTasks(initial: Array<string> | null = null) {
   const [showDone, setShowDone] = useState(true);
   const [draft, setDraft] = useState("");
 
-  const toggleDone = useCallback((id) => {
+  const toggleDone = useCallback((id: string) => {
     setTasks(prev => prev.map(t => (t.id === id ? { ...t, isDone: !t.isDone } : t)));
   }, []);
 
@@ -27,7 +49,7 @@ export function useTasks(initial: Array<string> | null = null) {
     setDraft("");
   }, [draft]);
 
-  const remove = useCallback((id) => {
+  const remove = useCallback((id: string) => {
     setTasks(prev => prev.filter(t => t.id !== id));
   }, []);
 
@@ -37,7 +59,7 @@ export function useTasks(initial: Array<string> | null = null) {
 
   const visible = useMemo(() => {
     const base = showDone ? tasks : tasks.filter(t => !t.isDone);
-    return sortTasks(base);
+    return base;
   }, [tasks, showDone]);
 
   const stats = useMemo(() => {
