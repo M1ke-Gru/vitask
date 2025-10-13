@@ -7,7 +7,7 @@ export default function TaskList() {
   const taskVM = useTasks()
   return (
     <div className="flex flex-col justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 align-middle w-4xl mx-auto">
-      {(taskVM.tasks.length === 0) && <p className="text-5xl text-white my-2">Welcome to Vitask!</p>}
+      {(taskVM.tasks.length === 0) && <p className="text-5xl text-white mb-6">Welcome to Vitask!</p>}
       <div className="flex flex-row space-x-3 mb-4 ">
         <EnterTask value={taskVM.draft} onChange={taskVM.setDraft} />
         <AddTask add={taskVM.addTask} disabled={false} />
