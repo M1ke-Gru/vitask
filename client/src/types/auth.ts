@@ -9,3 +9,10 @@ export type LoginResponse = {
   token_type: "bearer" | string;
   user_id: number;
 };
+
+export type ApiError = {
+  message: string;
+  response: string;
+  request: string;
+  config: string;
+}

@@ -1,18 +1,6 @@
-import axios from "axios";
 import { LoginResponse, SignupRequest } from "../types/auth";
 import { User } from "../types/user";
-
-const api = axios.create({
-  baseURL: "http://localhost:8000",
-  withCredentials: false,
-  headers: { "Content-Type": "application/json" },
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+import { api } from "./main"
 
 export async function signup(
   request: SignupRequest
@@ -29,6 +17,7 @@ export async function login(
   body.set("username", username);
   body.set("password", password);
 
+  
   const { data } = await api.post<LoginResponse>("/auth/token", body, {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
   });
@@ -39,7 +28,9 @@ export async function login(
 }
 
 export async function logout(): Promise<void> {
+  const { data } = await api.post("/auth/logout")
   localStorage.removeItem("token");
+  return data
 }
 
 export default api;

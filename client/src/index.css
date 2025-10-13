@@ -1,11 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@import "@fontsource/satoshi/variable.css";
+@import "tailwindcss";
 
-
+/* global base */
 @layer base {
   html {
-    @apply font-sans;
+    font-family: InterVariable, ui-sans-serif, system-ui;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
+
+/* optional shared component classes */
+@layer components {
+  .txt-area { @apply placeholder:text-gray-500 placeholder:italic active:scale-99; }
+  .btn { @apply active:scale-95 transition rounded-full; }
+}
+

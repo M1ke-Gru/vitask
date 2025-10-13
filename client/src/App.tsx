@@ -9,15 +9,13 @@ export default function App() {
   const taskVM = useTasks()
   const userVM = useAuth()
   return (
-    <div className="font-sans justify-center w-screen h-screen bg-gray-800">
+    <div className="font-sans justify-center w-screen h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <TopBar showDone={taskVM.showDone}
-        onToggleShowDone={() => taskVM.setShowDone(prev => !prev)}
+        onToggleShowDone={() => taskVM.toggleShowDone()}
         clearDone={taskVM.clearFinished}
-        username={userVM.user ? userVM.user.username : null}
-        showAuth={userVM.toggleAuth}
       />
-      <TaskList vm={taskVM} />
-      {userVM.authenticating && <AuthPopup/>}
+      <TaskList />
+      {userVM.authenticating && <AuthPopup />}
     </div>
   )
 }

@@ -16,62 +16,58 @@ function sortTasks(ts: Array<Task>) {
   });
 }
 
-const tasks = create((set) => ({
+type tasksState = {
+  tasks: Array<Task>
+  showDone: boolean
+  draft: string
+
+  // Task batch manipulation
+  setDraft: (draft: string) => void
+  clearFinished: () => void
+  getVisibleTasks: () => Array<Task>
+
+  // Manipulate a specific task
+  addTask: (task: Task) => void
+  changeTaskName: (id: string, name: string) => void
+  toggleTaskDone: (id: string) => void
+}
+
+export const useTasks = create<tasksState>((set, get) => ({
   tasks: [],
   showDone: true,
   draft: "",
 
-  toggleDone: () => set((state) => {
-    showDone: !state.showDone
-  }),
-  add: () => set((state) => {
-      const name = state.draft.trim()
-      if (!name) return
-      state.tasks = [...state.tasks, {id: nanoid(), name, isDone: false}]
-  })
+  setDraft: (draft: string) => set({ draft: draft }),
+
+  toggleTaskDone: (id: string) => set((state) => ({
+    tasks: state.tasks.map((task) => (task.id === id) ? {...task, isDone: !task.isDone} : task)
+  })),
+
+  addTask: () => {
+    const name = get().draft.trim()
+    if (!name) return
+    set({
+      tasks: [...get().tasks, { id: nanoid(), name, isDone: false }],
+      draft: "",
+    })
+  },
+
+
+
+  clearFinished: () => set((state) => ({
+    tasks: state.tasks.filter(t => !t.isDone)
+  })),
+
+  getVisibleTasks: () => {
+    return (get().showDone ? get().tasks : get().tasks.filter(t => !t.isDone))
+  },
+
+  getTask: (id: string) => {
+    return get().tasks.find((task) => (task.id === id))
+  },
+
+  changeTaskName: (id: string, name: string) => set((state) => ({
+    tasks: state.tasks.map((task) => (task.id === id ? { ...task, name: name } : task))
+  }))
+
 }))
-
-export function useTasks(initial: Array<string> | null = null) {
-  const [tasks, setTasks] = useState(
-    (initial ?? ["C", "E", "D", "A", "F", "B"]).map(name => ({ id: nanoid(), name, isDone: false }))
-  );
-  const [showDone, setShowDone] = useState(true);
-  const [draft, setDraft] = useState("");
-
-  const toggleDone = useCallback((id: string) => {
-    setTasks(prev => prev.map(t => (t.id === id ? { ...t, isDone: !t.isDone } : t)));
-  }, []);
-
-  const add = useCallback(() => {
-    const name = draft.trim();
-    if (!name) return;
-    setTasks(prev => [...prev, { id: nanoid(), name, isDone: false }]);
-    setDraft("");
-  }, [draft]);
-
-  const remove = useCallback((id: string) => {
-    setTasks(prev => prev.filter(t => t.id !== id));
-  }, []);
-
-  const clearFinished = useCallback(() => {
-    setTasks(prev => prev.filter(t => !t.isDone));
-  }, []);
-
-  const visible = useMemo(() => {
-    const base = showDone ? tasks : tasks.filter(t => !t.isDone);
-    return base;
-  }, [tasks, showDone]);
-
-  const stats = useMemo(() => {
-    const done = tasks.reduce((acc, t) => acc + (t.isDone ? 1 : 0), 0);
-    return { total: tasks.length, done, open: tasks.length - done };
-  }, [tasks]);
-
-  return {
-    draft, setDraft,
-    showDone, setShowDone,
-    visible, stats,
-    add, remove, toggleDone, clearFinished,
-  };
-}
-
