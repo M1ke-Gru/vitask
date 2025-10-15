@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import user_router
+from app.routers import user_router, task_router
 from app.database import Base, engine
 from app.auth import auth_router
 
@@ -19,9 +19,9 @@ app.add_middleware(
     allow_headers=["*"],  # e.g., Authorization, Content-Type
 )
 
-# Routers
 app.include_router(user_router)
 app.include_router(auth_router)
+app.include_router(task_router)
 
 
 @app.get("/")

@@ -25,3 +25,4 @@ class TaskCreate(BaseModel):
 
 class TaskRead(TaskCreate):
     id: int
+    user_id: int

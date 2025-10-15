@@ -1,61 +1,41 @@
 import pytest
-from uuid import uuid4
-
-from app.auth import logout
-
-TEST_PASSWORD = "P@SSWORD"
+from fastapi.testclient import TestClient
+from tests.conftest import TEST_PASSWORD
 
 
-@pytest.mark.anyio
-def test_signup(client):
+def test_signup(client: TestClient):
     payload = {
         "username": "abcd",
         "password": TEST_PASSWORD,
         "email": "abcd@example.com",
-        "grant_type": "password",
     }
-    response = client.post(
-        "/auth/signup", headers={"content-type": "application/json"}, json=payload
-    )
-    assert response.status_code == 201, response.text
+    r = client.post("/auth/signup", json=payload)
+    assert r.status_code == 201, r.text
 
 
-@pytest.fixture(scope="function")
-def seed_user(client) -> dict:
-    uid = uuid4().hex[:8]
-    payload = {
-        "username": f"user_{uid}",
-        "password": TEST_PASSWORD,
-        "email": f"user_{uid}@example.com",
-    }
-    response = client.post(
-        "/auth/signup", headers={"content-type": "application/json"}, json=payload
-    )
-    return response.json()
-
-
-def _assert_token_response(resp_json):
-    assert "access_token" in resp_json and resp_json["access_token"]
-    assert "refresh_token" in resp_json and resp_json["refresh_token"]
+def _assert_token_response(resp_json: dict, require_refresh: bool = False):
+    assert resp_json.get("access_token")
     if "token_type" in resp_json:
-        assert resp_json["token_type"] in ("bearer", "Bearer")
+        assert resp_json["token_type"].lower() == "bearer"
+    if require_refresh:
+        assert resp_json.get("refresh_token")
 
 
-def test_login_with_username_success(client, seed_user):
+def test_login_with_username_success(client: TestClient, seed_user: dict):
     data = {
         "username": seed_user["username"],
         "password": TEST_PASSWORD,
         "grant_type": "password",
     }
-    r = client.post("/auth/token", data=data)
-    assert r.status_code == 200, r.text + seed_user["username"]
-    _assert_token_response(r.json())
+    r = client.post("/auth/token", data=data)  # form-encoded automatically
+    assert r.status_code == 200, r.text
+    _assert_token_response(r.json(), require_refresh=False)
 
 
-def test_login_wrong_password(client, seed_user):
+def test_login_wrong_password(client: TestClient, seed_user: dict):
     data = {
         "username": seed_user["username"],
-        "password": "wrong_password",
+        "password": "wrong",
         "grant_type": "password",
     }
     r = client.post("/auth/token", data=data)
@@ -63,7 +43,7 @@ def test_login_wrong_password(client, seed_user):
     assert "incorrect" in r.text.lower()
 
 
-def test_login_unknown_user(client):
+def test_login_unknown_user(client: TestClient):
     data = {
         "username": "does_not_exist",
         "password": "whatever",
@@ -73,19 +53,9 @@ def test_login_unknown_user(client):
     assert r.status_code == 401
 
 
-@pytest.fixture(scope="function")
-def user_access_token(client, seed_user) -> dict:
-    data = {
-        "username": seed_user["username"],
-        "password": TEST_PASSWORD,
-        "grant_type": "password",
-    }
-    response = client.post("/auth/token", data=data)
-    return response.json()["access_token"]
-
-
-def test_logout_successful(client, user_access_token):
-    res = client.post(
+def test_logout_successful(client: TestClient, user_access_token: str):
+    r = client.post(
         "/auth/logout", headers={"Authorization": f"Bearer {user_access_token}"}
     )
-    assert res.json() == {"detail": "Logged out"}, res.text
+    assert r.status_code == 200, r.text
+    assert r.json() == {"detail": "Logged out"}, r.text

@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from app.models import UserDB
 
 from .database import get_db, Base
-from .services import get_user_by_username, create_user, get_user
+from .services.users import get_user_by_username, create_user, get_user
 from .schemas import UserCreate, UserRead
 from .security import verify_password
 
@@ -106,7 +106,8 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
     try:
         get_user_by_username(db, user_in.username)
     except Exception:
-        return create_user(db, user_in)
+        return UserRead.model_validate(
+            create_user(db, user_in.username, user_in.email, user_in.password))
     else:
         raise HTTPException(400, "A user with the same username exists already.")
 
@@ -132,7 +133,7 @@ def login_for_tokens(
 
 def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)
-):
+) -> UserDB:
     payload = decode_token(token)
     if payload.typ != "access":
         raise HTTPException(401, "Use an access token.")
@@ -142,7 +143,7 @@ def get_current_user(
     return user
 
 
-def get_current_active_user(current_user=Depends(get_current_user)):
+def get_current_active_user(current_user: UserDB = Depends(get_current_user)) -> UserDB:
     if getattr(current_user, "is_active", True) is False:
         raise HTTPException(400, "Inactive user.")
     return current_user
