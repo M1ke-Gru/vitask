@@ -18,7 +18,6 @@ export default function App() {
     if (userVM.token) {
       taskVM.fetchTasks(); // user just logged in
     } else {
-      // user logged out, clear tasks
       useTasks.setState({ tasks: [] });
     }
   }, [userVM.token, taskVM.fetchTasks]);

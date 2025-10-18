@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "../logic/Auth";
-import { ApiError } from "../types/auth"
 
 
 export default function LoginPopup() {
-  const { user, loginLogic, loggingIn, toggleLogin, toggleAuth, signupLogic, authError } = useAuth()
+  const { user, loginLogic, loggingIn, toggleLogin, toggleAuth, signupLogic, authError, setAuthError } = useAuth()
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -34,8 +33,7 @@ export default function LoginPopup() {
             onSubmit={async (e) => {
               e.preventDefault()
               loggingIn ? await loginLogic(username, password) : await signupLogic({ username, email, password })
-              console.log(user)
-              user ? useAuth((state) => ({ state: state.toggleAuth })) : useAuth(() => { authError: true })
+              useAuth.getState().user ? toggleAuth() : setAuthError("Toggle auth unsuccessfull")
             }}>
             <input
               type="text"

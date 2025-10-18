@@ -15,12 +15,12 @@ export async function deleteTask(task_id: number): Promise<void> {
   await api.delete("/task/" + task_id)
 }
 
-export async function changeDone(task_id: number, isDone: boolean): Promise<void> {
-  await api.patch(`/task/is_done/${task_id}/${isDone}`)
+export async function changeDone(task_id: number, task_part: {  isDone: boolean }): Promise<void> {
+  await api.patch(`/task/is_done/${task_id}/${task_part.isDone}`)
 }
 
-export async function changeName(task_id: number, name: string): Promise<void> {
-  await api.patch(`/task/name/${task_id}/${name}`)
+export async function changeName(task_id: number, task_part: { name: string }): Promise<void> {
+  await api.patch(`/task/name/${task_id}/${task_part.name}`)
 }
 
 export async function listTasks(): Promise<TaskRead[]> {

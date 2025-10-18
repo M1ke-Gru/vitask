@@ -105,7 +105,7 @@ def change_done(
         raise e
 
 
-@task_router.patch("/{task_id}/name/{name}")
+@task_router.patch("/name/{task_id}/{name}")
 def change_name(
     task_id: int,
     name: str,

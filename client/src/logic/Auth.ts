@@ -26,7 +26,7 @@ type AuthState = {
 
 export const useAuth = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
       user: null,
       loading: false,
@@ -56,9 +56,9 @@ export const useAuth = create<AuthState>()(
       loginLogic: async (username, password) => {
         set({ loading: true, authError: null });
         try {
-          const { access_token } = (await login(username, password));
-          const user = await getUser();
-          set({ token: access_token, user: user, loading: false });
+          const { access_token } = await login(username, password);
+          const current_user = await getUser();
+          set({ token: access_token, user: current_user, loading: false });
         } catch (e: any) {
           set({ token: null, user: null, loading: false, authError: e?.message ?? "Login failed" });
           throw e;
