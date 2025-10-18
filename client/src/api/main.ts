@@ -12,7 +12,6 @@ api.interceptors.response.use((response) => response,
     const { setAuthError } = useAuth()
     setAuthError(error)
   }
-
 )
 
 api.interceptors.request.use((config) => {

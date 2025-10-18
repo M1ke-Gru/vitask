@@ -1,15 +1,15 @@
 import "../App.css";
 
-export default function AddTask({ add, disabled }) {
+export default function AddTaskButton({ add, disabled }) {
   return (
     <button
       type="button"
       onClick={add}
       disabled={disabled}
       className="inline-flex items-center 
-      justify-center w-15 h-14 text-indigo-100 transition-transform
+      justify-center w-14 h-14 text-indigo-100 transition-transform
       duration-150 bg-blue-600/90 rounded-full border-1 border-blue-300/40  active:scale-95
-      focus:shadow-outline disabled:opacity-50 hover:bg-blue-500/90"
+      focus:shadow-outline shrink-0 aspect-square disabled:opacity-50 hover:bg-blue-500/90"
     >
       <svg className="w-8 h-8 fill-current" viewBox="0 0 20 20">
         <path

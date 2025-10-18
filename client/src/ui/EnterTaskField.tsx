@@ -1,4 +1,4 @@
-export default function EnterTask({ value, onChange }) {
+export default function EnterTaskField({ value, onChange }) {
   const style = `
     border-1 rounded-2xl border-gray-600 text-blue-50
     focus:outline-none hover:border-gray-500 focus:bg-gray-700/90

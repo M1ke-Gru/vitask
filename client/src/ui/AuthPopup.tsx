@@ -55,7 +55,7 @@ export default function LoginPopup() {
               className={textInput}
             />
             <div className="w-full flex flex-column space-x-4 my-12 mb-0 text-md">
-              <button className="py-3 rounded-full text-white/90 hover:bg-white/10 border border-white/10 bg-white/5 px-3 m-auto w-40" type="button" onClick={toggleLogin} >
+              <button className="py-3 rounded-full text-white/90 hover:bg-white/10 border border-white/10 bg-white/2 px-3 m-auto w-40" type="button" onClick={toggleLogin} >
                 {loggingIn ? "Sign up instead" : "Log in instead"}
               </button>
               <button className="bg-blue-600 hover:bg-blue-500 active:scale-95 transition rounded-full py-3 px-3 w-40 m-auto font-semibold text-blue-50" type="submit">

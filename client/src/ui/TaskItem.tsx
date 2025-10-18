@@ -4,7 +4,7 @@ import { useTasks } from '../logic/Tasks'
 function TaskItem({ id, name, done = false }) {
   const taskVM = useTasks()
 
-  const doneStyling = (done ? 'bg-gray-600/30 hover:bg-gray-600' : 'hover:bg-gray-600/80')
+  const doneStyling = (done ? 'bg-gray-800/80 hover:bg-gray-700/80' : 'hover:bg-gray-600/80')
 
   return (
     <div
@@ -22,14 +22,13 @@ function TaskItem({ id, name, done = false }) {
           className="w-6 h-6 rounded-full 
             border-2 border-white/50
             hover:bg-white/20
-            backdrop-blur-sm
             flex items-center justify-center
             focus:outline-none focus:ring-5 focus:ring-blue-400 focus:ring-offset-2
             transition-all duration-200 btn"
         >
           {done && <svg
             xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
+            viewBox="0 0 25 25"
             fill="none"
             stroke="white"
             strokeWidth="2"

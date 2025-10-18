@@ -1,20 +1,22 @@
 import TaskItem from "./TaskItem"
-import AddTask from "./AddTask"
-import EnterTask from "./EnterTask"
+import AddTaskButton from "./AddTaskButton"
+import EnterTaskField from "./EnterTaskField"
 import { useTasks } from "../logic/Tasks"
+import { useMediaQuery } from "react-responsive"
 
 export default function TaskList() {
   const taskVM = useTasks()
+  const isMobile = useMediaQuery({ maxWidth: 767 });
   return (
-    <div className="flex flex-col justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 align-middle w-4xl mx-auto">
-      {(taskVM.tasks.length === 0) && <p className="text-5xl text-white mb-6">Welcome to Vitask!</p>}
-      <div className="flex flex-row space-x-3 mb-4 ">
-        <EnterTask value={taskVM.draft} onChange={taskVM.setDraft} />
-        <AddTask add={taskVM.addTask} disabled={false} />
-      </div>
+    <div className="flex flex-col justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 align-middle w-screen max-w-4xl mx-auto px-6 ">
+      {(taskVM.tasks.length === 0) && <p className="text-5xl text-white mb-6 ">Welcome to Vitask!</p>}
+      {(!isMobile || taskVM.tasks.length === 0) && <div className="flex flex-row space-x-3 mb-4 ">
+        <EnterTaskField value={taskVM.draft} onChange={taskVM.setDraft} />
+        <AddTaskButton add={taskVM.addTask} disabled={false} />
+      </div>}
 
-      {(taskVM.tasks.length > 0) && <div className="bg-gray-700/80 backdrop-blur-md border backdrop-blur-md border-white/10 rounded-2xl px-1.5 py-1">
-        {taskVM.getVisibleTasks().map((t, i, ar) => (
+      {(taskVM.tasks.length > 0) && <div className="bg-gray-700/80 backdrop-blur-md border border-white/10 rounded-2xl px-1.5 py-1">
+        {taskVM.tasks.map((t, i, ar) => (
           <>
             <TaskItem
               key={t.id}

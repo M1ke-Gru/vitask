@@ -14,14 +14,14 @@ export default function TopBar({ showDone, onToggleShowDone, clearDone }: Props)
     "inline-flex items-center justify-center rounded-full px-4 py-2 text-md font-medium " +
     "transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60";
 
-  const btnSecondary = `${btn} text-white/90 hover:bg-white/10 border border-white/5`;
+  const btnSecondary = `${btn} text-white/90 hover:bg-white/15 bg-white/1 border border-white/10`;
   const btnPrimary = `${btn} bg-blue-600 hover:bg-blue-500 text-white`;
 
   return (
     <div className="sticky top-0 z-20 flex items-center justify-between gap-3
                     bg-gray-950/70 backdrop-blur h-16 my-0 mb-2
-                    border-1 border-white/15 px-4 md:px-6 py-3">
-      <h1 className="text-blue-50 font-semibold tracking-tight text-xl md:text-2xl">
+                    border-1 border-b-white/15 px-4 md:px-6 py-3">
+      <h1 className="text-blue-50 font-semibold tracking-tight text-2xl md:text-2xl">
         Vitask
       </h1>
 
