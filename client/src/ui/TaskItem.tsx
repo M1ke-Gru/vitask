@@ -39,8 +39,9 @@ function TaskItem({ id, name, done = false }) {
         </div>
       </label>
       <input
-        className={"text-xl mx-1 rounded-lg px-2 text-blue-50 focus:outline-none" + (done && " line-through")}
+        className={"text-xl mx-1 rounded-lg px-2 text-blue-50 focus:outline-none w-full " + (done && " line-through")}
         value={name}
+        onBlur={(e) => taskVM.sendNewTaskName(id, e.target.value)}
         onChange={(e) => taskVM.changeTaskName(id, e.target.value)}
         placeholder="Enter name"
       />

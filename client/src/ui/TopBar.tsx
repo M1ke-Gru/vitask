@@ -1,5 +1,6 @@
 import "../App.css";
 import { useAuth } from "../logic/Auth";
+import { useMediaQuery } from "react-responsive"
 
 type Props = {
   showDone: boolean;
@@ -9,6 +10,7 @@ type Props = {
 
 export default function TopBar({ showDone, onToggleShowDone, clearDone }: Props) {
   const userVM = useAuth();
+  const isMobile = useMediaQuery({ maxWidth: 767 });
 
   const btn =
     "inline-flex items-center justify-center rounded-full px-4 py-2 text-md font-medium " +
@@ -25,7 +27,7 @@ export default function TopBar({ showDone, onToggleShowDone, clearDone }: Props)
         Vitask
       </h1>
 
-      <div className="flex items-center gap-3">
+      {!isMobile && <div className="flex items-center gap-3">
         <button id="showDone" onClick={onToggleShowDone} className={btnSecondary}>
           {showDone ? "Hide done" : "Show done"}
         </button>
@@ -42,7 +44,15 @@ export default function TopBar({ showDone, onToggleShowDone, clearDone }: Props)
         >
           {userVM.user ? "Log out" : "Log in"}
         </button>
+      </div>}
+      {isMobile && <button id="list" className={"border-1 border-white/10 p-3 rounded-xl font-xl font-bold"}>    
+      <div className="flex flex-col justify-between w-6 h-5">
+        <span className="block h-0.5 w-full bg-white rounded"></span>
+        <span className="block h-0.5 w-full bg-white rounded"></span>
+        <span className="block h-0.5 w-full bg-white rounded"></span>
       </div>
+      </button>
+      }
     </div>
   );
 }

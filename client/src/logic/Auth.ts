@@ -5,6 +5,7 @@ import api from "../api/auth";
 import { getUser } from "../api/user";
 import type { User } from "../types/user";
 import type { SignupRequest } from "../types/auth";
+import { useTasks } from "./Tasks";
 
 type AuthState = {
   token: string | null;
@@ -59,6 +60,7 @@ export const useAuth = create<AuthState>()(
           const { access_token } = await login(username, password);
           const current_user = await getUser();
           set({ token: access_token, user: current_user, loading: false });
+          useTasks.getState().onReconnect()
         } catch (e: any) {
           set({ token: null, user: null, loading: false, authError: e?.message ?? "Login failed" });
           throw e;

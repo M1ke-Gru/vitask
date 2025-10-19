@@ -12,17 +12,24 @@ function sortTasks(ts: TaskRead[]) {
   });
 }
 
+export const TaskAction = {
+  CREATE: "CREATE",
+  UPDATE: "UPDATE",
+  DELETE: "DELETE",
+} as const;
+
+export type TaskAction = (typeof TaskAction)[keyof typeof TaskAction];
+
 /** Keep the queue minimal: store payload + tempId, not whole TaskRead */
-type Job = {
-  id: number;
-  action: (...args) => Promise<void | TaskRead>
-  args: Partial<TaskCreate>
-};
+type Job =
+  | { type: typeof TaskAction.CREATE; payload: TaskRead }
+  | { type: typeof TaskAction.UPDATE; payload: TaskRead }
+  | { type: typeof TaskAction.DELETE; payload: { id: number } }
 
 // Exists to keep initial attributes in sync with the store
 type TaskListData = {
   tasks: TaskRead[];
-  offline_task_queue: Job[];
+  offlineTaskQueue: Job[];
   showDone: boolean;
   draft: string;
   loading: boolean;
@@ -31,7 +38,7 @@ type TaskListData = {
 
 const initialTaskListData: TaskListData = {
   tasks: [],
-  offline_task_queue: [],
+  offlineTaskQueue: [],
   showDone: true,
   draft: "",
   loading: false,
@@ -46,6 +53,7 @@ type TaskListState = TaskListData & {
 
   addTask: () => Promise<void>;
   changeTaskName: (id: number, name: string) => void;
+  sendNewTaskName: (id: number, name: string) => void;
   toggleTaskDone: (id: number) => void;
 
   onReconnect: () => Promise<void>;
@@ -75,14 +83,19 @@ export const useTasks = create<TaskListState>()(
       setDraft: (draft: string) => set({ draft }),
 
       toggleTaskDone: (id: number) => {
-        const task = get().tasks.find(task => id === task.id)
-        if (!task) throw Error("No task with id " + id + " coud be found.")
-        const reverse_done = !task.isDone
-        updateHelper(changeDone, id, { isDone: reverse_done })
+        const task = get().tasks.find(task => id === task.id)!
+        updateHelper(changeDone, id, { isDone: !task.isDone })
       },
 
       changeTaskName: (id: number, name: string) => {
-        updateHelper(changeName, id, { name: name })
+        set((state) => ({
+          tasks:
+            state.tasks.map((t) => (t.id === id ? { ...t, name: name } : t))
+        }));
+      },
+
+      sendNewTaskName: (id: number, name: string) => {
+        updateHelper(changeName, id, { name })
       },
 
       toggleShowDone: () => {
@@ -96,29 +109,25 @@ export const useTasks = create<TaskListState>()(
         const tempId = -Date.now(); // negative -> clearly client-generated
         const optimistic: TaskCreate = { name, isDone: false };
 
-        // 1) optimistic insert
         set((state) => ({
-          tasks: sortTasks([...state.tasks, { id: tempId, ...optimistic }]),
+          tasks: sortTasks([...state.tasks, { ...optimistic, id: tempId }]),
           draft: "",
           error: null,
         }));
 
         try {
-          // 2) real request
           const created = await createTask({ name, isDone: false });
 
-          // 3) reconcile temp -> server
           set((state) => ({
             tasks: sortTasks(
               state.tasks.map((t) => (t.id === tempId ? created : t))
             ),
           }));
         } catch (e) {
-          // Queue for later; keep optimistic item visible
           set((state) => ({
-            offline_task_queue: [
-              ...state.offline_task_queue,
-              { id: tempId, action: createTask, args: optimistic },
+            offlineTaskQueue: [
+              ...state.offlineTaskQueue,
+              { type: TaskAction.CREATE, payload: { ...optimistic, id: tempId } },
             ],
             error:
               e instanceof Error ? e.message : "Offline: queued task creation",
@@ -126,22 +135,31 @@ export const useTasks = create<TaskListState>()(
         }
       },
 
-      clearFinished: () =>
-        set((state) => ({
-          tasks: state.tasks.filter((t) => !t.isDone),
-        })),
+      clearFinished: () => {
+        deleteHelper((task) => task.isDone)
+      },
 
       onReconnect: async () => {
-        const queue = [...get().offline_task_queue];
+        const queue = [...get().offlineTaskQueue];
         if (queue.length === 0) return;
 
         const completedTempIds = new Set<number>();
 
         for (const job of queue) {
           try {
-            job.action(job.args)
+            switch (job.type) {
+              case TaskAction.CREATE:
+                await createTask(job.payload)
+                break
+              case TaskAction.UPDATE:
+                await updateTask(job.payload)
+                break
+              case TaskAction.DELETE:
+                await deleteTask(job.payload.id)
+                break
+            }
+            completedTempIds.add(job.payload.id)
           } catch {
-            // Breaks if offline again
             break;
           }
         }
@@ -149,8 +167,8 @@ export const useTasks = create<TaskListState>()(
         // Remove completed jobs from queue
         if (completedTempIds.size > 0) {
           set((state) => ({
-            offline_task_queue: state.offline_task_queue.filter(
-              (j) => !(completedTempIds.has(j.id))
+            offlineTaskQueue: state.offlineTaskQueue.filter(
+              (j) => !(completedTempIds.has(j.payload.id))
             ),
           }));
         }
@@ -161,9 +179,9 @@ export const useTasks = create<TaskListState>()(
 
     // Helps to optimistically update tasks
     async function updateHelper(
-      action: (id: number, ...attrs: any[]) => Promise<any>,
+      func: (id: number, task_part: Partial<TaskCreate>) => Promise<void | TaskRead>,
       id: number,
-      args: Partial<TaskCreate> // what specifically to update in the task
+      args: Partial<TaskCreate>,
     ) {
       set((state) => ({
         tasks: sortTasks(
@@ -172,7 +190,7 @@ export const useTasks = create<TaskListState>()(
       }));
 
       try {
-        await action(id, args);
+        await func(id, args);
       } catch {
         /*
          * Id was optimistically set if it is less than zero,
@@ -181,23 +199,66 @@ export const useTasks = create<TaskListState>()(
          * Therefore the parameters which the newly created 
          * task has need to simply be updated in the offline queue
         */
-        if (id < 0) {
+        if (id < 0 || get().offlineTaskQueue.find((task) => task.payload.id === id)) {
           set((state) => ({
-            offline_task_queue: state.offline_task_queue.map((j) =>
-              j.id === id
-                ? { ...j, args: { ...j.args, ...args } }
+            offlineTaskQueue: state.offlineTaskQueue.map((j) =>
+              j.payload.id === id
+                ? { ...j, args: { ...j.payload, ...args } }
                 : j
             ),
           }));
         } else {
+
+          const task = get().tasks.find((task) => task.id === id)!
           set((state) => ({
-            offline_task_queue: [
-              ...state.offline_task_queue,
-              { id, action, args },
+            offlineTaskQueue: [
+              ...state.offlineTaskQueue,
+              { type: TaskAction.UPDATE, payload: task },
             ],
           }));
         }
       }
+    }
+    async function deleteHelper(
+      condition: (task: TaskRead) => boolean,
+    ) {
+      const taskState = get()
+      const tasksToDelete = taskState.tasks.filter(condition)
+      const ids = tasksToDelete.map(t => t.id)
+      set((state) => ({
+        tasks: state.tasks.filter(t => !condition(t)),
+      }));
+
+      for (const id of ids) {
+        try {
+          await deleteTask(id);
+        } catch {
+          const otaskPosition = taskState.offlineTaskQueue.findIndex(job => job.payload.id === id)
+          if (otaskPosition !== -1) {
+            const otask = taskState.offlineTaskQueue[otaskPosition]
+            if (otask.type === TaskAction.CREATE) {
+              taskState.offlineTaskQueue.filter((job) => job.payload.id !== id)
+            } else if (otask.type === TaskAction.UPDATE) {
+              set((state) => ({
+                offlineTaskQueue: state.offlineTaskQueue.map(
+                  (job) => (job.payload.id === id ? { type: TaskAction.DELETE, payload: { id } } : job)
+                )
+              }))
+            } else if (otask.type === TaskAction.DELETE) {
+              continue
+            }
+          } else {
+            set((state) => ({
+              offlineTaskQueue: [...state.offlineTaskQueue,
+              { type: TaskAction.DELETE, payload: { id } }]
+            }))
+          }
+        }
+      }
+      set((state) => ({
+        tasks: sortTasks(state.tasks),
+      }));
+
     }
     return store
   },
@@ -207,11 +268,8 @@ export const useTasks = create<TaskListState>()(
         tasks: s.tasks,
         showDone: s.showDone,
         draft: s.draft,
-        offline_task_queue: s.offline_task_queue,
       }),
       version: 1,
     }
   )
 );
-
-
