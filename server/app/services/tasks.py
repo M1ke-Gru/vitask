@@ -3,11 +3,11 @@ from sqlalchemy.orm import Session
 
 from app.errors import ForbiddenException, NotFoundException
 from app.models import TaskDB
+from app.schemas import TaskRead
 
 
 def list_tasks(db: Session, user_id: int) -> list[TaskDB]:
     stmt = select(TaskDB).where(TaskDB.user_id == user_id)
-    print( [(t.name, t.is_done) for t in list(db.scalars(stmt).all())])
     return list(db.scalars(stmt).all())
 
 
@@ -48,10 +48,20 @@ def change_done(db: Session, task_id: int, is_done: bool, user_id: int) -> None:
     task_db.is_done = is_done
     db.commit()
     db.refresh(task_db)
-    print(task_db)
 
 
 def change_name(db: Session, task_id: int, name: str, user_id: int) -> None:
     task_db: TaskDB = fetch_task(db, task_id, user_id)
     task_db.name = name
     db.commit()
+
+
+def update_task(task: TaskRead, db: Session, user_id: int) -> TaskDB:
+    task_db: TaskDB = fetch_task(db, task.id, user_id)  # existing row
+
+    for field, value in task.model_dump().items():
+        setattr(task_db, field, value)
+
+    db.commit()
+    db.refresh(task_db)
+    return task_db

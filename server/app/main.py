@@ -29,4 +29,9 @@ async def hi():
     return {"message": "hi"}
 
 
+@app.get("/health")
+async def health():
+    return {"message": "Server running"}
+
+
 Base.metadata.create_all(engine)

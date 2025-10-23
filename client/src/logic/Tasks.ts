@@ -19,13 +19,11 @@ export const TaskAction = {
 
 export type TaskAction = (typeof TaskAction)[keyof typeof TaskAction];
 
-/** Keep the queue minimal: store payload + tempId, not whole TaskRead */
 type Job =
   | { type: typeof TaskAction.CREATE; payload: TaskRead }
   | { type: typeof TaskAction.UPDATE; payload: TaskRead }
   | { type: typeof TaskAction.DELETE; payload: { id: number } }
 
-// Exists to keep initial attributes in sync with the store
 type TaskListData = {
   tasks: TaskRead[];
   offlineTaskQueue: Job[];
@@ -35,6 +33,8 @@ type TaskListData = {
   error: string | null;
 };
 
+// Reset useTasks data to this when logging out 
+// or set to it for a new user
 const initialTaskListData: TaskListData = {
   tasks: [],
   offlineTaskQueue: [],
@@ -105,7 +105,7 @@ export const useTasks = create<TaskListState>()(
         const name = get().draft.trim();
         if (!name) return;
 
-        const tempId = -Date.now(); // negative -> clearly client-generated
+        const tempId = -Date.now(); // negative -> client-generated
         const optimistic: TaskCreate = { name, isDone: false };
 
         set((state) => ({
@@ -142,34 +142,41 @@ export const useTasks = create<TaskListState>()(
         const queue = [...get().offlineTaskQueue];
         if (queue.length === 0) return;
 
-        const completedTempIds = new Set<number>();
+        const completedIds = new Set<number>();
 
         for (const job of queue) {
           try {
             switch (job.type) {
               case TaskAction.CREATE:
-                await createTask(job.payload)
-                break
+                await createTask(job.payload);
+                break;
               case TaskAction.UPDATE:
-                await updateTask(job.payload)
-                break
+                await updateTask(job.payload);
+                break;
               case TaskAction.DELETE:
-                await deleteTask(job.payload.id)
-                break
+                await deleteTask(job.payload.id);
+                break;
             }
-            completedTempIds.add(job.payload.id)
+            completedIds.add(job.payload.id);
           } catch {
-            break;
+            console.warn("Failed job:", job);
           }
         }
 
-        // Remove completed jobs from queue
-        if (completedTempIds.size > 0) {
+        if (completedIds.size > 0) {
           set((state) => ({
             offlineTaskQueue: state.offlineTaskQueue.filter(
-              (j) => !(completedTempIds.has(j.payload.id))
+              (j) => !completedIds.has(j.payload.id)
             ),
           }));
+
+          // Refetch tasks to ensure sync with backend
+          try {
+            const updated = await get().fetchTasks();
+            set({ tasks: sortTasks(updated) });
+          } catch (e) {
+            console.warn("Could not refetch tasks after reconnecting", e);
+          }
         }
       },
 
@@ -182,6 +189,7 @@ export const useTasks = create<TaskListState>()(
       id: number,
       args: Partial<TaskCreate>,
     ) {
+      // Optimistic local update
       set((state) => ({
         tasks: sortTasks(
           state.tasks.map((t) => (t.id === id ? { ...t, ...args } : t))
@@ -191,28 +199,27 @@ export const useTasks = create<TaskListState>()(
       try {
         await func(id, args);
       } catch {
-        /*
-         * Id was optimistically set if it is less than zero,
-         * which means that the task is in the offline queue
-         * waiting to be created on the backend.
-         * Therefore the parameters which the newly created 
-         * task has need to simply be updated in the offline queue
-        */
-        if (id < 0 || get().offlineTaskQueue.find((job) => job.payload.id === id)) {
+        const queue = get().offlineTaskQueue;
+
+        // Find if there are pending create or update jobs to include the update into these
+        const existingIndex = queue.findIndex(
+          (j) => j.type === TaskAction.UPDATE || TaskAction.CREATE && j.payload.id === id
+        );
+        if (existingIndex !== -1) {
           set((state) => ({
-            offlineTaskQueue: state.offlineTaskQueue.map((j) =>
-              j.payload.id === id
-                ? { ...j, args: { ...j.payload, ...args } }
+            offlineTaskQueue: state.offlineTaskQueue.map((j, i) =>
+              i === existingIndex
+                ? { ...j, payload: { ...j.payload, ...args } }
                 : j
             ),
           }));
         } else {
-
-          const task = get().tasks.find((task) => task.id === id)!
+          // Create update job
+          const task = get().tasks.find((task) => task.id === id)!;
           set((state) => ({
             offlineTaskQueue: [
               ...state.offlineTaskQueue,
-              { type: TaskAction.UPDATE, payload: task },
+              { type: TaskAction.UPDATE, payload: { ...task, ...args } },
             ],
           }));
         }
@@ -235,9 +242,14 @@ export const useTasks = create<TaskListState>()(
           const otaskPosition = taskState.offlineTaskQueue.findIndex(job => job.payload.id === id)
           if (otaskPosition !== -1) {
             const otask = taskState.offlineTaskQueue[otaskPosition]
+            // If there is a pending create job, simply delete the job
             if (otask.type === TaskAction.CREATE) {
-              taskState.offlineTaskQueue.filter((job) => job.payload.id !== id)
+              set((state) => ({
+                offlineTaskQueue: state.offlineTaskQueue.filter(
+                  (job) => job.payload.id !== id)
+              }))
             } else if (otask.type === TaskAction.UPDATE) {
+              // Pending update job -> replace it with a delete job
               set((state) => ({
                 offlineTaskQueue: state.offlineTaskQueue.map(
                   (job) => (job.payload.id === id ? { type: TaskAction.DELETE, payload: { id } } : job)

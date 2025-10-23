@@ -127,3 +127,10 @@ def delete_all_done(
     db: Session = Depends(get_db), user: UserDB = Depends(get_current_active_user)
 ):
     svc.delete_done(db, user_id=user.id)
+
+
+@task_router.patch("/update")
+def task_update(task: TaskRead,
+    db: Session = Depends(get_db), user: UserDB = Depends(get_current_active_user)
+):
+    svc.update_task(task, db, user.id)

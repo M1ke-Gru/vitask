@@ -1,47 +1,39 @@
-import axios from "axios"
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import axios from "axios";
+import { create } from "zustand";
 
-const connected = async (): Promise<boolean> => {
+const checkServerConnection = async (): Promise<boolean> => {
   try {
-    await axios.get("/")
+    await axios.get("/health");
+    return true;
   } catch (error) {
-    if (error) {
-      return false
-    }
+    return false;
   }
-  return true
-}
+};
 
-async function connectivityHelper(onReconnect: () => void): Promise<void> {
-  return new Promise(resolve => {
-    const check = async () => {
-      const connection = await connected();
-      if (connection) {
-        onReconnect();
-        resolve();
-      } else {
-        setTimeout(check, 2000); // Продовжуємо опитування
+type ConnectionState = {
+  isConnected: boolean;
+  isReconnecting: boolean;
+  waitToReconnect: (onReconnect: () => void) => void;
+};
+
+export const useConnection = create<ConnectionState>()((set, get) => ({
+  isConnected: true,
+  isReconnecting: false,
+
+  waitToReconnect: async (onReconnect) => {
+    if (get().isReconnecting) return;
+
+    set({ isReconnecting: true, isConnected: false });
+
+    const interval = setInterval(async () => {
+      const ok = await checkServerConnection();
+      if (ok) {
+        console.warn("Lost connection. Trying to reconnect...");
+        clearInterval(interval);
+        set({ isConnected: true, isReconnecting: false });
+        await onReconnect();
       }
-    };
-    check();
-  });
-}
+    }, 3000);
+  },
+}));
 
-type connectionState = {
-  helperRunning: boolean,
-  waitToReconnect: (onReconnect: () => void) => void
-}
-
-export const connection = create<connectionState>()(
-  (set, get) => ({
-    helperRunning: false,
-    waitToReconnect: async (onReconnect) => {
-      if (!get().helperRunning) {
-        set({ helperRunning: true })
-        await connectivityHelper(onReconnect)
-        set({ helperRunning: false })
-      }
-    }
-  }),
-)

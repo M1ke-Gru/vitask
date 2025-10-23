@@ -7,7 +7,6 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // InterVariable gives you the variable-weight version from @fontsource-variable/inter
         sans: ['InterVariable', 'ui-sans-serif', 'system-ui'],
       },
     },
