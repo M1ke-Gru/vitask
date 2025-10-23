@@ -27,7 +27,7 @@ export default function TopBar({ showDone, onToggleShowDone, clearDone }: Props)
         Vitask
       </h1>
 
-      {!isMobile && <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3">
         <button id="showDone" onClick={onToggleShowDone} className={btnSecondary}>
           {showDone ? "Hide done" : "Show done"}
         </button>
@@ -44,15 +44,7 @@ export default function TopBar({ showDone, onToggleShowDone, clearDone }: Props)
         >
           {userVM.user ? "Log out" : "Log in"}
         </button>
-      </div>}
-      {isMobile && <button id="list" className={"border-1 border-white/10 p-3 rounded-xl font-xl font-bold"}>    
-      <div className="flex flex-col justify-between w-6 h-5">
-        <span className="block h-0.5 w-full bg-white rounded"></span>
-        <span className="block h-0.5 w-full bg-white rounded"></span>
-        <span className="block h-0.5 w-full bg-white rounded"></span>
       </div>
-      </button>
-      }
     </div>
   );
 }

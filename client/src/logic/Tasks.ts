@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { listTasks, createTask, changeDone, updateTask, deleteTask, changeName } from "../api/tasks";
 import type { TaskCreate, TaskRead } from "../types/task";
-import { useAuth } from "./Auth";
 
 function sortTasks(ts: TaskRead[]) {
   return [...ts].sort((a, b) => {
@@ -199,7 +198,7 @@ export const useTasks = create<TaskListState>()(
          * Therefore the parameters which the newly created 
          * task has need to simply be updated in the offline queue
         */
-        if (id < 0 || get().offlineTaskQueue.find((task) => task.payload.id === id)) {
+        if (id < 0 || get().offlineTaskQueue.find((job) => job.payload.id === id)) {
           set((state) => ({
             offlineTaskQueue: state.offlineTaskQueue.map((j) =>
               j.payload.id === id

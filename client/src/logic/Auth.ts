@@ -60,7 +60,8 @@ export const useAuth = create<AuthState>()(
           const { access_token } = await login(username, password);
           const current_user = await getUser();
           set({ token: access_token, user: current_user, loading: false });
-          useTasks.getState().onReconnect()
+          await useTasks.getState().onReconnect()
+          await useTasks.getState().fetchTasks()
         } catch (e: any) {
           set({ token: null, user: null, loading: false, authError: e?.message ?? "Login failed" });
           throw e;
@@ -72,9 +73,9 @@ export const useAuth = create<AuthState>()(
         try {
           await logout();
         } finally {
-          // ensure cleanup even if API call fails
           localStorage.removeItem("token");
           delete api.defaults.headers.common.Authorization;
+          useTasks.setState({ tasks: [] })
 
           set({ token: null, user: null, loading: false });
         }
@@ -84,7 +85,6 @@ export const useAuth = create<AuthState>()(
     }),
     {
       name: "auth",
-      // only persist what you need
       partialize: (s) => ({ token: s.token, user: s.user }),
       onRehydrateStorage: () => (rehydrated) => {
         if (!rehydrated?.token) return;
