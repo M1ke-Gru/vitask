@@ -16,3 +16,4 @@ anyio
 pytest-cov
 email_validator
 gunicorn
+alembic
