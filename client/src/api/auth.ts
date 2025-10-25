@@ -6,8 +6,13 @@ import { api } from "./main"
 export async function signup(
   request: SignupRequest
 ): Promise<User> {
-  const { data } = await api.post<User>("/auth/signup", request);
-  return data;
+  try {
+    console.log("Request: ", request)
+    const { data } = await api.post<User>("/auth/signup", request);
+    return data;
+  } catch (e) {
+    throw e
+  }
 }
 
 export async function login(

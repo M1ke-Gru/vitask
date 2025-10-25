@@ -6,6 +6,7 @@ import { getUser } from "../api/user";
 import type { User } from "../types/user";
 import type { SignupRequest } from "../types/auth";
 import { useTasks } from "./Tasks";
+import { toErrorMessage } from "./utils/error";
 
 type AuthState = {
   token: string | null;
@@ -57,13 +58,14 @@ export const useAuth = create<AuthState>()(
       loginLogic: async (username, password) => {
         set({ loading: true, authError: null });
         try {
-          const { access_token } = await login(username, password);
-          const current_user = await getUser();
-          set({ token: access_token, user: current_user, loading: false });
+          const data = await login(username, password);
+          const current_user: User = await getUser();
+          set({ token: data.access_token, user: current_user, loading: false });
           await useTasks.getState().onReconnect()
           await useTasks.getState().fetchTasks()
         } catch (e: any) {
-          set({ token: null, user: null, loading: false, authError: e?.message ?? "Login failed" });
+          const msg = toErrorMessage(e)
+          set({ token: null, user: null, loading: false, authError: msg ?? "Login failed" });
           throw e;
         }
       },

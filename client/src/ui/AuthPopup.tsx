@@ -33,7 +33,15 @@ export default function LoginPopup() {
           <form className="space-y-4"
             onSubmit={async (e) => {
               e.preventDefault()
-              loggingIn ? await loginLogic(username, password) : await signupLogic({ username, email, password })
+              try {
+                loggingIn ? await loginLogic(username, password) : await signupLogic({ username, email, password })
+              } catch (err) {
+                if (err instanceof Error) {
+                  console.error("Error:", err.message);
+                } else {
+                  console.error("Unexpected:", err);
+                }
+              }
               useAuth.getState().user ? toggleAuth() : setAuthError("Toggle auth unsuccessfull")
             }}>
             <input
