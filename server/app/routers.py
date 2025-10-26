@@ -15,7 +15,7 @@ user_router = APIRouter(prefix="/user", tags=["user"])
 task_router = APIRouter(prefix="/task", tags=["tasks"])
 
 
-@user_router.get("/", response_model=UserBase)
+@user_router.get("", response_model=UserBase)
 def read_me(user=Depends(get_current_active_user)):
     if not user:
         raise HTTPException(400, "User is not logged in.")

@@ -2,12 +2,14 @@
 FROM node:20 AS build
 WORKDIR /app
 
-# Ensure dev deps are installed (required for vite)
-ENV NODE_ENV=development
-
-# Install dependencies (use lockfile if you have it)
+# Install deps (dev deps needed for vite build)
 COPY package*.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci --include=dev
+RUN --mount=type=cache,target=/root/.npm npm ci
+
+# Pass API URL into the build
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+ENV NODE_ENV=production
 
 # Copy the rest and build
 COPY . .
@@ -15,9 +17,8 @@ RUN npm run build
 
 # ---- Runtime stage ----
 FROM nginx:alpine
-# Nginx config that proxies /api to backend
+# If you don't need /api proxying here (Caddy handles it), you can use a plain SPA nginx.conf.
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-# Copy Vite output (Vite default -> dist/)
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

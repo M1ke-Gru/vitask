@@ -39,7 +39,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       UVICORN_HOST: 0.0.0.0
       UVICORN_PORT: 8000
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      ALLOWED_ORIGINS: "https://vitask.app"
       TZ: ${TZ:-Europe/Berlin}
     depends_on:
       db:
@@ -64,13 +64,13 @@ services:
   frontend:
     build:
       context: ./client
-    environment:
-      VITE_API_URL: ${VITE_API_URL}
+      args:
+        VITE_API_URL: "https://api.vitask.app"
     depends_on:
       backend:
         condition: service_healthy
     expose:
-      - "80" # internal only; Caddy will proxy to this
+      - "80"
     networks: [app]
     restart: unless-stopped
 
