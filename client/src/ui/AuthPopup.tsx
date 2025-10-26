@@ -4,12 +4,14 @@ import { useTasks } from "../logic/Tasks";
 
 
 export default function LoginPopup() {
-  const { user, loginLogic, loggingIn, toggleLogin, toggleAuth, signupLogic, authError, setAuthError } = useAuth()
+  const { user, loginLogic, loggingIn, toggleLogin, toggleAuth, signupLogic, authError, postSignUp } = useAuth()
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const redBorder = authError ? ' border-2 border-red-700' : ''
-  const textInput = 'block w-full p-2 rounded-lg bg-gray-700/80 border-1 border-gray-600/80 text-white text-lg focus:outline-none txt-area' + redBorder
+  const infoTextColor: string = postSignUp ? 'text-green-700 ' : 'text-red-700 '
+  const redBorder: string = authError ? ' border-2 border-red-700' : ''
+  const greenBorder: string = postSignUp ? ' border-2 border-green-700' : ''
+  const textInput: string = 'block w-full p-2 rounded-lg bg-gray-700/80 border-1 border-gray-600/80 text-white text-lg focus:outline-none txt-area' + redBorder + greenBorder
 
   return (
     <div className="fixed inset-0 z-50 duration-100 bg-black/50 backdrop-blur-sm">
@@ -28,21 +30,13 @@ export default function LoginPopup() {
           </h2>
 
 
-          {authError && <p className="text-red-400 mb-8">{authError}</p>}
+          {authError || postSignUp && <p className={infoTextColor + "mb-8"}>{authError || "Now go to log in"}</p>}
 
           <form className="space-y-4"
             onSubmit={async (e) => {
               e.preventDefault()
-              try {
-                loggingIn ? await loginLogic(username, password) : await signupLogic({ username, email, password })
-              } catch (err) {
-                if (err instanceof Error) {
-                  console.error("Error:", err.message);
-                } else {
-                  console.error("Unexpected:", err);
-                }
-              }
-              useAuth.getState().user ? toggleAuth() : setAuthError("Toggle auth unsuccessfull")
+              const success = loggingIn ? await loginLogic(username, password) : await signupLogic({ username, email, password })
+              if (success) toggleAuth()
             }}>
             <input
               type="text"

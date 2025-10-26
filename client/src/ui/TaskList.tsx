@@ -16,7 +16,9 @@ export default function TaskList() {
       </div>}
 
       {(taskVM.tasks.length > 0) && <div className="bg-gray-700/80 backdrop-blur-md border border-white/10 rounded-2xl px-1.5 py-1">
-        {taskVM.tasks.map((t, i, ar) => (
+        {taskVM.tasks.filter(
+          t => { if (!t.isDone || taskVM.showDone) return t }
+        ).map((t, i, ar) => (
           <>
             <TaskItem
               key={t.id}

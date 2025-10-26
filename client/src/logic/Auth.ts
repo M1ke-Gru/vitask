@@ -14,14 +14,15 @@ type AuthState = {
   loading: boolean;
 
   loggingIn: boolean;
+  postSignUp: boolean; // exists to show that the user has signed up and needs to log in now
   authenticating: boolean;
 
   authError: string | null;
 
   toggleAuth: () => void;
   toggleLogin: () => void;
-  signupLogic: (request: SignupRequest) => Promise<void>;
-  loginLogic: (username: string, password: string) => Promise<void>;
+  signupLogic: (request: SignupRequest) => Promise<boolean>;
+  loginLogic: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   setAuthError: (msg: string) => void;
 };
@@ -34,6 +35,7 @@ export const useAuth = create<AuthState>()(
       loading: false,
 
       loggingIn: true,
+      postSignUp: false,
       authenticating: false,
 
       authError: null,
@@ -42,16 +44,18 @@ export const useAuth = create<AuthState>()(
         set((s) => ({ authenticating: !s.authenticating })),
 
       toggleLogin: () =>
-        set((s) => ({ loggingIn: !s.loggingIn })),
+        set((s) => ({ loggingIn: !s.loggingIn, postSignUp: false })),
 
       signupLogic: async (request) => {
         set({ loading: true, authError: null });
         try {
-          const user = await signup(request);
-          set({ user, loading: false });
+          await signup(request);
+          set({ postSignUp: true, loading: false });
+          return false
         } catch (e: any) {
-          set({ loading: false, authError: e?.message ?? "Signup failed" });
-          throw e;
+          const msg = toErrorMessage(e)
+          set({ loading: false, authError: msg });
+          return false
         }
       },
 
@@ -59,14 +63,16 @@ export const useAuth = create<AuthState>()(
         set({ loading: true, authError: null });
         try {
           const data = await login(username, password);
+          set({ token: data.access_token });
           const current_user: User = await getUser();
-          set({ token: data.access_token, user: current_user, loading: false });
+          set({ postSignUp: false, user: current_user, loading: false })
           await useTasks.getState().onReconnect()
           await useTasks.getState().fetchTasks()
+          return true
         } catch (e: any) {
           const msg = toErrorMessage(e)
           set({ token: null, user: null, loading: false, authError: msg ?? "Login failed" });
-          throw e;
+          return false
         }
       },
 
@@ -75,7 +81,6 @@ export const useAuth = create<AuthState>()(
         try {
           await logout();
         } finally {
-          localStorage.removeItem("token");
           delete api.defaults.headers.common.Authorization;
           useTasks.setState({ tasks: [] })
 

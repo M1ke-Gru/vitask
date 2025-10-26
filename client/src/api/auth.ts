@@ -28,14 +28,11 @@ export async function login(
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
   });
 
-  localStorage.setItem("token", data.access_token);
-
   return data
 }
 
 export async function logout(): Promise<void> {
   const { data } = await api.post("/auth/logout")
-  localStorage.removeItem("token");
   return data
 }
 

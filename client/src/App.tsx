@@ -28,10 +28,7 @@ export default function App() {
   return (
     <div className="font-sans justify-center w-screen h-screen 
       bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <TopBar showDone={taskVM.showDone}
-        onToggleShowDone={() => taskVM.toggleShowDone()}
-        clearDone={taskVM.clearFinished}
-      />
+      <TopBar />
       <TaskList />
       {(isMobile && taskVM.tasks.length > 0)
         && <div className="flex flex-row space-x-3 px-6 mb-6 absolute w-[calc(100vw)] bottom-0 left-0 ">

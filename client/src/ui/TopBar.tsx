@@ -1,15 +1,12 @@
 import "../App.css";
 import { useAuth } from "../logic/Auth";
 import { useMediaQuery } from "react-responsive"
+import { useTasks } from "../logic/Tasks";
 
-type Props = {
-  showDone: boolean;
-  onToggleShowDone: () => void;
-  clearDone: () => void;
-};
 
-export default function TopBar({ showDone, onToggleShowDone, clearDone }: Props) {
+export default function TopBar() {
   const userVM = useAuth();
+  const taskVM = useTasks();
   const isMobile = useMediaQuery({ maxWidth: 767 });
 
   const btn =
@@ -28,11 +25,11 @@ export default function TopBar({ showDone, onToggleShowDone, clearDone }: Props)
       </h1>
 
       <div className="flex items-center gap-3">
-        <button id="showDone" onClick={onToggleShowDone} className={btnSecondary}>
-          {showDone ? "Hide done" : "Show done"}
+        <button id="showDone" onClick={taskVM.toggleShowDone} className={btnSecondary}>
+          {taskVM.showDone ? "Hide done" : "Show done"}
         </button>
 
-        <button id="clearDone" onClick={clearDone} className={btnSecondary}>
+        <button id="clearDone" onClick={taskVM.clearFinished} className={btnSecondary}>
           Clear done
         </button>
 
