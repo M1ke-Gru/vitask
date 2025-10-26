@@ -8,7 +8,6 @@ from app.auth import auth_router
 
 
 def parse_origins(raw: str) -> list[str]:
-    # Split, strip, and drop empties
     return [o.strip() for o in raw.split(",") if o.strip()]
 
 
@@ -25,14 +24,12 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # must be explicit with credentials
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
     expose_headers=["*"],
 )
-
-print(origins)
 
 app.include_router(user_router)
 app.include_router(auth_router)

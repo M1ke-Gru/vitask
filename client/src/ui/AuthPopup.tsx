@@ -4,13 +4,13 @@ import { useTasks } from "../logic/Tasks";
 
 
 export default function LoginPopup() {
-  const { user, loginLogic, loggingIn, toggleLogin, toggleAuth, signupLogic, authError, postSignUp } = useAuth()
+  const { user, setAuthError, loginLogic, loggingIn, toggleLogin, toggleAuth, signupLogic, authError, postSignUp } = useAuth()
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const infoTextColor: string = postSignUp ? 'text-green-700 ' : 'text-red-700 '
-  const redBorder: string = authError ? ' border-2 border-red-700' : ''
-  const greenBorder: string = postSignUp ? ' border-2 border-green-700' : ''
+  const redBorder: string = authError ? ' border-2 border-red-500' : ''
+  const greenBorder: string = postSignUp ? ' border-2 border-green-500' : ''
   const textInput: string = 'block w-full p-2 rounded-lg bg-gray-700/80 border-1 border-gray-600/80 text-white text-lg focus:outline-none txt-area' + redBorder + greenBorder
 
   return (
@@ -29,14 +29,20 @@ export default function LoginPopup() {
             {loggingIn ? "Log in" : "Sign up"}
           </h2>
 
-
-          {authError || postSignUp && <p className={infoTextColor + "mb-8"}>{authError || "Now go to log in"}</p>}
-
+          {(authError || postSignUp) && (
+            <p className={`${postSignUp ? 'text-green-500' : 'text-red-500'} mb-8 font-semibold`}>
+              {authError || "Now go to log in"}
+            </p>
+          )}
           <form className="space-y-4"
             onSubmit={async (e) => {
               e.preventDefault()
-              const success = loggingIn ? await loginLogic(username, password) : await signupLogic({ username, email, password })
-              if (success) toggleAuth()
+              if (password.length < 8) {
+                setAuthError("Password must have at least 8 symbols")
+              } else {
+                const success = loggingIn ? await loginLogic(username, password) : await signupLogic({ username, email, password })
+                if (success) toggleAuth()
+              }
             }}>
             <input
               type="text"
