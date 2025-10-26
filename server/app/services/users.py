@@ -7,8 +7,6 @@ from app.schemas import UserRead
 
 from app.models import UserDB
 
-# TODO: get pydantic out of the service layer.
-
 
 def get_user(db, user_id: int) -> UserDB:
     userdb = db.get(UserDB, user_id)
@@ -21,7 +19,7 @@ def get_user_by_username(db, username: str) -> UserDB:
     stmt = select(UserDB).where(UserDB.username == username)
     user = db.execute(stmt).scalar_one_or_none()
     if not user:
-        raise HTTPException(401, f"User with the username {username} was not found")
+        raise HTTPException(401, "The username or password is incorrect.")
     return user
 
 
