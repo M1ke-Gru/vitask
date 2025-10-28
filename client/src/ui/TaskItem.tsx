@@ -4,7 +4,7 @@ import { useTasks } from '../logic/Tasks'
 function TaskItem({ id, name, done = false }) {
   const taskVM = useTasks()
 
-  const doneStyling = (done ? 'bg-gray-800/80 hover:bg-gray-700/80' : 'hover:bg-gray-600/80')
+  const doneStyling = (done ? 'hover:bg-gray-700/80' : 'hover:bg-gray-600/80')
 
   return (
     <div
