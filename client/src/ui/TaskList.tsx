@@ -15,7 +15,7 @@ export default function TaskList() {
         <AddTaskButton add={taskVM.addTask} disabled={false} />
       </div>}
 
-      {(taskVM.tasks.length > 0) && <div className="bg-gray-700/80 backdrop-blur-md border border-white/10 rounded-2xl px-1.5 py-1">
+      {(taskVM.tasks.length > 0) && <div className="bg-gray-700/80 shadow-md backdrop-blur-md border border-white/10 rounded-2xl px-1.5 py-1">
         {taskVM.tasks.filter(
           t => { if (!t.isDone || taskVM.showDone) return t }
         ).map((t, i, ar) => (
