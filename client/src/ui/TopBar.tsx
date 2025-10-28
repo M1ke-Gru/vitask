@@ -25,14 +25,6 @@ export default function TopBar() {
       </h1>
 
       <div className="flex items-center gap-3">
-        <button id="showDone" onClick={taskVM.toggleShowDone} className={btnSecondary}>
-          {taskVM.showDone ? "Hide done" : "Show done"}
-        </button>
-
-        <button id="clearDone" onClick={taskVM.clearFinished} className={btnSecondary}>
-          Clear done
-        </button>
-
         <button
           id="auth"
           onClick={() => (userVM.user ? userVM.logout() : userVM.toggleAuth())}
