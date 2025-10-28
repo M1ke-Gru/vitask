@@ -30,7 +30,7 @@ function TaskItem({ id, name, done = false }) {
         <div
           className="w-7 h-7 rounded-full border-2 border-white/50
                      hover:bg-white/20 flex items-center justify-center
-                     transition-all duration-200"
+                     transition-all shadow-[0_0_1px_rgba(255,255,255,0.3)] duration-200"
         >
           {done && (
             <svg
