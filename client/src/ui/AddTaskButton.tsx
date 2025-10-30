@@ -1,6 +1,11 @@
 import "../App.css";
 
-export default function AddTaskButton({ add, disabled }) {
+type AddTaskButtonProps = {
+    add: () => void;
+    disabled?: boolean;
+};
+
+export default function AddTaskButton({ add, disabled }: Readonly<AddTaskButtonProps>) {
   return (
     <button
       type="button"

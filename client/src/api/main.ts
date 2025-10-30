@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useAuth } from "../logic/Auth";
 import { useConnection } from "./check_connection";
-import { useTasks } from "../logic/Tasks";
+import useTasks from "../logic/Tasks";
 import { toErrorMessage } from "../logic/utils/error";
 
 export const api = axios.create({

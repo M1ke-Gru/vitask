@@ -1,5 +1,5 @@
 import "../App.css";
-import { useTasks } from "../logic/Tasks";
+import useTasks from "../logic/Tasks";
 
 export default function EnterTaskField() {
   const taskVM = useTasks()

@@ -1,7 +1,7 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { listTasks, createTask, changeDone, updateTask, deleteTask, changeName } from "../api/tasks";
-import type { TaskCreate, TaskRead } from "../types/task";
+import {create} from "zustand";
+import {persist} from "zustand/middleware";
+import {changeDone, changeName, createTask, deleteTask, listTasks, updateTask} from "../api/tasks";
+import type {TaskCreate, TaskRead} from "../types/task";
 
 function sortTasks(ts: TaskRead[]) {
   return [...ts].sort((a, b) => {
@@ -59,131 +59,9 @@ type TaskListState = TaskListData & {
   resetOnLogout: () => void;
 };
 
-export const useTasks = create<TaskListState>()(
+const useTasks = create<TaskListState>()(
   persist((set, get) => {
-    const store = ({
-      ...initialTaskListData,
-
-      fetchTasks: async (): Promise<TaskRead[]> => {
-        try {
-          set({ loading: true, error: null });
-          const data = await listTasks();
-          const sorted = sortTasks(data);
-          set({ tasks: sorted, loading: false });
-          return sorted;
-        } catch (e: any) {
-          set({
-            tasks: [], loading: false
-          });
-          return [];
-        }
-      },
-
-      setDraft: (draft: string) => set({ draft }),
-
-      toggleTaskDone: (id: number) => {
-        const task = get().tasks.find(task => id === task.id)!
-        updateHelper(changeDone, id, { isDone: !task.isDone })
-      },
-
-      changeTaskName: (id: number, name: string) => {
-        set((state) => ({
-          tasks:
-            state.tasks.map((t) => (t.id === id ? { ...t, name: name } : t))
-        }));
-      },
-
-      sendNewTaskName: (id: number, name: string) => {
-        updateHelper(changeName, id, { name })
-      },
-
-      toggleShowDone: () => {
-        set((s) => ({ showDone: !s.showDone }))
-      },
-
-      addTask: async () => {
-        const name = get().draft.trim();
-        if (!name) return;
-
-        const tempId = -Date.now(); // negative -> client-generated
-        const optimistic: TaskCreate = { name, isDone: false };
-
-        set((state) => ({
-          tasks: sortTasks([...state.tasks, { ...optimistic, id: tempId }]),
-          draft: "",
-          error: null,
-        }));
-
-        try {
-          const created = await createTask({ name, isDone: false });
-
-          set((state) => ({
-            tasks: sortTasks(
-              state.tasks.map((t) => (t.id === tempId ? created : t))
-            ),
-          }));
-        } catch (e) {
-          set((state) => ({
-            offlineTaskQueue: [
-              ...state.offlineTaskQueue,
-              { type: TaskAction.CREATE, payload: { ...optimistic, id: tempId } },
-            ],
-            error:
-              e instanceof Error ? e.message : "Offline: queued task creation",
-          }));
-        }
-      },
-
-      clearFinished: () => {
-        deleteHelper((task) => task.isDone)
-      },
-
-      onReconnect: async () => {
-        const queue = [...get().offlineTaskQueue];
-        if (queue.length === 0) return;
-
-        const completedIds = new Set<number>();
-
-        for (const job of queue) {
-          try {
-            switch (job.type) {
-              case TaskAction.CREATE:
-                await createTask(job.payload);
-                break;
-              case TaskAction.UPDATE:
-                await updateTask(job.payload);
-                break;
-              case TaskAction.DELETE:
-                await deleteTask(job.payload.id);
-                break;
-            }
-            completedIds.add(job.payload.id);
-          } catch {
-            console.warn("Failed job:", job);
-          }
-        }
-
-        if (completedIds.size > 0) {
-          set((state) => ({
-            offlineTaskQueue: state.offlineTaskQueue.filter(
-              (j) => !completedIds.has(j.payload.id)
-            ),
-          }));
-
-          // Refetch tasks to ensure sync with backend
-          try {
-            const updated = await get().fetchTasks();
-            set({ tasks: sortTasks(updated) });
-          } catch (e) {
-            console.warn("Could not refetch tasks after reconnecting", e);
-          }
-        }
-      },
-
-      resetOnLogout: () => set({ ...initialTaskListData }),
-    })
-
-    // Helps to optimistically update tasks
+          // Helps to optimistically update tasks
     async function updateHelper(
       func: (id: number, task_part: Partial<TaskCreate>) => Promise<void | TaskRead>,
       id: number,
@@ -207,10 +85,11 @@ export const useTasks = create<TaskListState>()(
         );
         if (existingIndex !== -1) {
           set((state) => ({
-            offlineTaskQueue: state.offlineTaskQueue.map((j, i) =>
-              i === existingIndex
-                ? { ...j, payload: { ...j.payload, ...args } }
-                : j
+            offlineTaskQueue: state.offlineTaskQueue.map((j: Job, i: number) => {
+                    return i === existingIndex
+                        ? {...j, payload: {...j.payload, ...args}}
+                        : j;
+                }
             ),
           }));
         } else {
@@ -271,7 +150,127 @@ export const useTasks = create<TaskListState>()(
       }));
 
     }
-    return store
+    return ({
+        ...initialTaskListData,
+
+        fetchTasks: async (): Promise<TaskRead[]> => {
+            try {
+                set({loading: true, error: null});
+                const data = await listTasks();
+                const sorted = sortTasks(data);
+                set({tasks: sorted, loading: false});
+                return sorted;
+            } catch (e: any) {
+                set({
+                    tasks: [], loading: false
+                });
+                return [];
+            }
+        },
+
+        setDraft: (draft: string) => set({draft}),
+
+        toggleTaskDone: (id: number) => {
+            const task = get().tasks.find(task => id === task.id)!
+            updateHelper(changeDone, id, {isDone: !task.isDone})
+        },
+
+        changeTaskName: (id: number, name: string) => {
+            set((state) => ({
+                tasks:
+                    state.tasks.map((t) => (t.id === id ? {...t, name: name} : t))
+            }));
+        },
+
+        sendNewTaskName: (id: number, name: string) => {
+            updateHelper(changeName, id, {name})
+        },
+
+        toggleShowDone: () => {
+            set((s) => ({showDone: !s.showDone}))
+        },
+
+        addTask: async () => {
+            const name = get().draft.trim();
+            if (!name) return;
+
+            const tempId = -Date.now(); // negative -> client-generated
+            const optimistic: TaskCreate = {name, isDone: false};
+
+            set((state) => ({
+                tasks: sortTasks([...state.tasks, {...optimistic, id: tempId}]),
+                draft: "",
+                error: null,
+            }));
+
+            try {
+                const created = await createTask({name, isDone: false});
+
+                set((state) => ({
+                    tasks: sortTasks(
+                        state.tasks.map((t) => (t.id === tempId ? created : t))
+                    ),
+                }));
+            } catch (e) {
+                set((state) => ({
+                    offlineTaskQueue: [
+                        ...state.offlineTaskQueue,
+                        {type: TaskAction.CREATE, payload: {...optimistic, id: tempId}},
+                    ],
+                    error:
+                        e instanceof Error ? e.message : "Offline: queued task creation",
+                }));
+            }
+        },
+
+        clearFinished: () => {
+            deleteHelper((task) => task.isDone)
+        },
+
+        onReconnect: async () => {
+            const queue = [...get().offlineTaskQueue];
+            if (queue.length === 0) return;
+
+            const completedIds = new Set<number>();
+
+            for (const job of queue) {
+                try {
+                    switch (job.type) {
+                        case TaskAction.CREATE:
+                            await createTask(job.payload);
+                            break;
+                        case TaskAction.UPDATE:
+                            await updateTask(job.payload);
+                            break;
+                        case TaskAction.DELETE:
+                            await deleteTask(job.payload.id);
+                            break;
+                    }
+                    completedIds.add(job.payload.id);
+                } catch {
+                    console.warn("Failed job:", job);
+                }
+            }
+
+            if (completedIds.size > 0) {
+                set((state) => ({
+                    offlineTaskQueue: state.offlineTaskQueue.filter(
+                        (j) => !completedIds.has(j.payload.id)
+                    ),
+                }));
+
+                // Refetch tasks to ensure sync with backend
+                try {
+                    const updated = await get().fetchTasks();
+                    set({tasks: sortTasks(updated)});
+                } catch (e) {
+                    console.warn("Could not refetch tasks after reconnecting", e);
+                }
+            }
+        },
+
+        resetOnLogout: () => set({...initialTaskListData}),
+    })
   },
     {
       name: "tasks",
@@ -284,3 +283,4 @@ export const useTasks = create<TaskListState>()(
     }
   )
 );
+export default useTasks

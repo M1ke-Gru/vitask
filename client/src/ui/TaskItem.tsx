@@ -1,7 +1,13 @@
 import '../App.css'
-import { useTasks } from '../logic/Tasks'
+import useTasks from '../logic/Tasks'
 
-function TaskItem({ id, name, done = false }) {
+type TaskItemProps = {
+    id: number,
+    name: string,
+    done?: boolean
+}
+
+function TaskItem({ id, name, done = false}: Readonly<TaskItemProps>) {
   const taskVM = useTasks()
   const doneStyling = done ? 'hover:bg-gray-700/80' : 'hover:bg-gray-600/80'
   const checkboxId = `task-${id}-done`

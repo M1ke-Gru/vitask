@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../logic/Auth";
-import { useTasks } from "../logic/Tasks";
+import useTasks from "../logic/Tasks";
 
 
 export default function LoginPopup() {

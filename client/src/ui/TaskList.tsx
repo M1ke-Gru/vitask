@@ -1,7 +1,7 @@
 import TaskItem from "./TaskItem"
 import AddTaskButton from "./AddTaskButton"
 import EnterTaskField from "./EnterTaskField"
-import { useTasks } from "../logic/Tasks"
+import useTasks from "../logic/Tasks"
 import { useMediaQuery } from "react-responsive"
 import { useState } from "react"
 

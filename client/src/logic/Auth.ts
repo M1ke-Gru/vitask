@@ -5,7 +5,7 @@ import api from "../api/auth";
 import { getUser } from "../api/user";
 import type { User } from "../types/user";
 import type { SignupRequest } from "../types/auth";
-import { useTasks } from "./Tasks";
+import useTasks from "./Tasks";
 import { toErrorMessage } from "./utils/error";
 
 type AuthState = {

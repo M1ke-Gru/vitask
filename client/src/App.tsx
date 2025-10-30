@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import TaskList from "./ui/TaskList"
-import TopBar from "./ui/TopBar"
-import { useTasks } from "./logic/Tasks"
+import {TopBar} from "./ui/TopBar"
+import useTasks from "./logic/Tasks"
 import { useAuth } from "./logic/Auth"
 import AuthPopup from "./ui/AuthPopup"
 import { useMediaQuery } from "react-responsive"

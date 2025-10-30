@@ -1,4 +1,4 @@
-import { useTasks } from "../logic/Tasks";
+import useTasks from "../logic/Tasks";
 import { LoginResponse, SignupRequest } from "../types/auth";
 import { User } from "../types/user";
 import { api } from "./main"
