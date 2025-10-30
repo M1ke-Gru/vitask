@@ -1,12 +1,11 @@
 import { useEffect } from "react";
 import TaskList from "./ui/TaskList"
-import {TopBar} from "./ui/TopBar"
+import { TopBar } from "./ui/TopBar"
 import useTasks from "./logic/Tasks"
 import { useAuth } from "./logic/Auth"
 import AuthPopup from "./ui/AuthPopup"
 import { useMediaQuery } from "react-responsive"
 import EnterTaskField from "./ui/EnterTaskField"
-import AddTaskButton from "./ui/AddTaskButton"
 import { useConnection } from "./api/check_connection";
 
 
@@ -30,9 +29,8 @@ export default function App() {
       <TopBar height={16} />
       <TaskList />
       {(isMobile && taskVM.tasks.length > 0)
-        && <div className="flex flex-row space-x-3 px-6 mb-6 absolute w-[calc(100vw)] bottom-0 left-0 ">
+        && <div className="px-6 mb-2 absolute w-[calc(100vw)] bottom-0 left-0 ">
           <EnterTaskField />
-          <AddTaskButton add={taskVM.addTask} disabled={false} />
         </div>}
       {userVM.authenticating && <AuthPopup />}
     </div>

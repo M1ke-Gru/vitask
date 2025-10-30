@@ -12,6 +12,7 @@ type AuthState = {
   token: string | null;
   user: User | null;
   loading: boolean;
+  hasShown401: boolean;
 
   loggingIn: boolean;
   postSignUp: boolean; // exists to show that the user has signed up and needs to log in now
@@ -19,6 +20,8 @@ type AuthState = {
 
   authError: string | null;
 
+  setHasShown401: (value: boolean) => void
+  setToken: (token: string | null) => void;
   toggleAuth: () => void;
   toggleLogin: () => void;
   signupLogic: (request: SignupRequest) => Promise<boolean>;
@@ -35,10 +38,16 @@ export const useAuth = create<AuthState>()(
       loading: false,
 
       loggingIn: true,
+      hasShown401: false,
       postSignUp: false,
       authenticating: false,
 
+
       authError: null,
+
+      setHasShown401: (value: boolean) => {
+        set(() => ({ hasShown401: value }))
+      },
 
       toggleAuth: () =>
         set((s) => ({ authenticating: !s.authenticating })),
@@ -59,31 +68,39 @@ export const useAuth = create<AuthState>()(
         }
       },
 
+      setToken: (token: string | null) => {
+        set({ token });
+        if (token) api.defaults.headers.common.Authorization = `Bearer ${token}`;
+        else delete api.defaults.headers.common.Authorization;
+      },
+
+
       loginLogic: async (username, password) => {
-        set({ loading: true, authError: null });
-        try {
-          const data = await login(username, password);
-          set({ token: data.access_token });
-          const current_user: User = await getUser();
-          set({ postSignUp: false, user: current_user, loading: false })
-          await useTasks.getState().onReconnect()
-          await useTasks.getState().fetchTasks()
-          return true
-        } catch (e: any) {
-          const msg = toErrorMessage(e)
-          set({ token: null, user: null, loading: false, authError: msg ?? "Login failed" });
-          return false
-        }
+        const data = await login(username, password);
+        set({ token: data.access_token });
+
+        // Set header globally
+        api.defaults.headers.common.Authorization = `Bearer ${data.access_token}`;
+
+        // Then fetch user
+        const current_user: User = await getUser();
+        set({ user: current_user, loading: false, postSignUp: false });
+
+        await useTasks.getState().onReconnect();
+        await useTasks.getState().fetchTasks();
+        return true
       },
 
       logout: async () => {
         set({ loading: true, authError: null });
         try {
-          await logout();
+          await logout(); // backend clears cookie
+        } catch (e) {
+          console.error(e);
         } finally {
           delete api.defaults.headers.common.Authorization;
-          useTasks.setState({ tasks: [] })
-
+          localStorage.removeItem("token");
+          useTasks.setState({ tasks: [] });
           set({ token: null, user: null, loading: false });
         }
       },

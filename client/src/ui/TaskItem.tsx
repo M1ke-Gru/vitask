@@ -2,12 +2,12 @@ import '../App.css'
 import useTasks from '../logic/Tasks'
 
 type TaskItemProps = {
-    id: number,
-    name: string,
-    done?: boolean
+  id: number,
+  name: string,
+  done?: boolean
 }
 
-function TaskItem({ id, name, done = false}: Readonly<TaskItemProps>) {
+function TaskItem({ id, name, done = false }: Readonly<TaskItemProps>) {
   const taskVM = useTasks()
   const doneStyling = done ? 'hover:bg-gray-700/80' : 'hover:bg-gray-600/80'
   const checkboxId = `task-${id}-done`
@@ -54,7 +54,7 @@ function TaskItem({ id, name, done = false}: Readonly<TaskItemProps>) {
 
       {/* text input */}
       <input
-        className={`text-xl mx-1 rounded-lg px-2 text-gray-200 focus:outline-none w-full ${done ? 'line-through' : ''
+        className={`text-xl mx-1 rounded-lg px-2 text-gray-200 ${done ? 'line-through' : ''
           }`}
         value={name}
         onBlur={(e) => taskVM.sendNewTaskName(id, e.target.value)}

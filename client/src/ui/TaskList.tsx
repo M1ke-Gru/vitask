@@ -1,5 +1,4 @@
 import TaskItem from "./TaskItem"
-import AddTaskButton from "./AddTaskButton"
 import EnterTaskField from "./EnterTaskField"
 import useTasks from "../logic/Tasks"
 import { useMediaQuery } from "react-responsive"
@@ -14,10 +13,7 @@ export default function TaskList() {
       {(taskVM.tasks.length === 0) &&
         <p className="drop-shadow-[0_4px_12px_rgba(0,0,0,16)] text-5xl text-white mb-6 "
         >Welcome to Vitask!</p>}
-      {(!isMobile || taskVM.tasks.length === 0) && <div className="flex flex-row space-x-3 mb-4 ">
-        <EnterTaskField />
-        <AddTaskButton add={taskVM.addTask} disabled={false} />
-      </div>}
+      {(!isMobile || taskVM.tasks.length === 0) && <EnterTaskField />}
       <div className="rounded-2xl shadow-black/30 shadow-md overflow-hidden">
         {(taskVM.tasks.length > 0) &&
           <div className="bg-slate-700/70 shadow-md max-h-[calc(100dvh-200px)] overflow-y-auto backdrop-blur-md 
