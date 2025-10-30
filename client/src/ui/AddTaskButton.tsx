@@ -7,7 +7,7 @@ export default function AddTaskButton({ add, disabled }) {
       onClick={add}
       disabled={disabled}
       className="inline-flex items-center 
-      justify-center shadow-md w-14 h-14 text-indigo-100 transition-transform
+      justify-center shadow-md shadow-black/50 w-14 h-14 text-indigo-100 transition-transform
       duration-150 bg-blue-600/90 rounded-full border-1 border-blue-300/40  active:scale-95
       focus:shadow-outline shrink-0 aspect-square disabled:opacity-50 hover:bg-blue-500/90"
     >

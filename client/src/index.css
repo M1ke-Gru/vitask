@@ -11,7 +11,7 @@
 
 /* optional shared component classes */
 @layer components {
-  .txt-area { @apply placeholder:text-gray-500 placeholder:italic active:scale-99; }
+  .txt-area { @apply placeholder:text-slate-400 placeholder:italic active:scale-99; }
   .btn { @apply active:scale-95 transition rounded-full; }
 }
 

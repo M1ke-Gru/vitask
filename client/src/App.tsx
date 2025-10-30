@@ -26,13 +26,12 @@ export default function App() {
   }, [connection.isConnected, connection.isReconnecting]);
 
   return (
-    <div className="font-sans justify-center w-screen h-screen 
-      bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <TopBar />
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <TopBar height={16} />
       <TaskList />
       {(isMobile && taskVM.tasks.length > 0)
         && <div className="flex flex-row space-x-3 px-6 mb-6 absolute w-[calc(100vw)] bottom-0 left-0 ">
-          <EnterTaskField value={taskVM.draft} onChange={taskVM.setDraft} />
+          <EnterTaskField />
           <AddTaskButton add={taskVM.addTask} disabled={false} />
         </div>}
       {userVM.authenticating && <AuthPopup />}

@@ -1,13 +1,9 @@
 import "../App.css";
 import { useAuth } from "../logic/Auth";
-import { useMediaQuery } from "react-responsive"
-import { useTasks } from "../logic/Tasks";
 
 
-export default function TopBar() {
+export default function TopBar({ height }) {
   const userVM = useAuth();
-  const taskVM = useTasks();
-  const isMobile = useMediaQuery({ maxWidth: 767 });
 
   const btn =
     "inline-flex items-center justify-center rounded-full px-4 py-2 text-md font-medium " +
@@ -17,10 +13,10 @@ export default function TopBar() {
   const btnPrimary = `${btn} bg-blue-600 hover:bg-blue-500 text-white`;
 
   return (
-    <div className="sticky top-0 z-20 flex items-center justify-between gap-3
-                    bg-gray-950/70 backdrop-blur h-16 my-0 mb-2
-                    border-1 border-b-white/15 px-4 md:px-6 py-3">
-      <h1 className="text-blue-50 font-semibold tracking-tight text-2xl md:text-2xl">
+    <div className={`sticky top-0 z-20 flex items-center justify-between gap-3
+                    bg-gray-950/70 backdrop-blur my-0 mb-2
+                    border-1 border-b-white/15 px-4 h-16`}>
+      <h1 className="text-blue-50 font-semibold tracking-tight text-2xl">
         Vitask
       </h1>
 

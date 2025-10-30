@@ -11,16 +11,16 @@ export default function LoginPopup() {
   const infoTextColor: string = postSignUp ? 'text-green-700 ' : 'text-red-700 '
   const redBorder: string = authError ? ' border-2 border-red-500' : ''
   const greenBorder: string = postSignUp ? ' border-2 border-green-500' : ''
-  const textInput: string = 'block w-full p-2 rounded-lg bg-gray-700/80 border-1 border-gray-600/80 text-white text-lg focus:outline-none txt-area' + redBorder + greenBorder
+  const textInput: string = 'block w-full p-2 rounded-lg bg-slate-700/80 border-1 border-slate-600/70 text-white text-lg focus:outline-none txt-area' + redBorder + greenBorder
 
   return (
     <div className="fixed inset-0 z-50 duration-100 bg-black/50 backdrop-blur-sm">
       <div className="flex items-center justify-center min-h-screen min-w-screen">
-        <div className="relative bg-gray-900/50 border-1 animate-fadeInUp  border-gray-700 backdrop-blur-xl rounded-2xl p-8 w-md text-center">
+        <div className="relative bg-gray-900/60 border-1 animate-fadeInUp  border-slate-700 backdrop-blur-xl rounded-2xl p-8 w-md text-center">
 
           <button
             onClick={toggleAuth}
-            className="absolute top-4 right-4 text-blue-50 rounded-full text-xl w-8 h-8 hover:bg-gray-700 transition"
+            className="absolute top-4 right-4 text-blue-50 rounded-full text-xl w-8 h-8 hover:bg-slate-700 transition"
           >
             ✕
           </button>
