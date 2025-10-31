@@ -2,7 +2,7 @@ import "../App.css";
 import { useAuth } from "../logic/Auth";
 
 
-export function TopBar({height}: Readonly<{ height: number }>) {
+export function TopBar() {
     const userVM = useAuth();
 
     const btn =
@@ -13,7 +13,7 @@ export function TopBar({height}: Readonly<{ height: number }>) {
     return (
         <div className={`sticky top-0 z-20 flex items-center justify-between gap-3
                     bg-gray-950/70 backdrop-blur my-0 mb-2
-                    border-1 border-b-white/15 px-4 h-${height}`}>
+                    border-1 border-b-white/15 px-4 h-16`}>
             <h1 className="text-blue-50 font-semibold tracking-tight text-2xl">
                 Vitask
             </h1>

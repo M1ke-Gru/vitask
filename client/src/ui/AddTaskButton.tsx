@@ -14,7 +14,7 @@ export default function AddTaskButton({ add, recording, disabled }: Readonly<Add
       disabled={disabled}
       className="inline-flex items-center my-auto
       justify-center w-10 h-10 text-indigo-100 transition-transform
-      duration-150 bg-blue-600/90 rounded-full active:scale-95
+      duration-150 bg-blue-600/90 rounded-full border-1 border-slate-500/40 active:scale-95
       focus:shadow-outline shrink-0 aspect-square disabled:opacity-50 hover:bg-blue-500/90"
     >
       <svg className="w-7 h-7 fill-current" viewBox="0 0 20 20">

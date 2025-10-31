@@ -26,7 +26,7 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <TopBar height={16} />
+      <TopBar />
       <TaskList />
       {(isMobile && taskVM.tasks.length > 0)
         && <div className="px-6 mb-2 absolute w-[calc(100vw)] bottom-0 left-0 ">
