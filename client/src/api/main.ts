@@ -5,7 +5,7 @@ import useTasks from "../logic/Tasks";
 import { toErrorMessage } from "../logic/utils/error";
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000" || "https://api.vitask.app",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
   withCredentials: false, // normal requests don't need cookies
   headers: { "Content-Type": "application/json" },
 });
