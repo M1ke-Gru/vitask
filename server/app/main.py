@@ -14,7 +14,7 @@ def parse_origins(raw: str) -> list[str]:
 DEFAULT_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://vitask.app",
+    "https://vitask.app",
 ]
 
 raw = os.getenv("ALLOWED_ORIGINS", "")
