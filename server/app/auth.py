@@ -27,7 +27,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 router_name: str = "auth"
-domain = ".vitask.app"
+domain = "vitask.app"
 auth_router = APIRouter(prefix="/" + router_name, tags=[router_name])
 
 
@@ -274,7 +274,7 @@ def refresh_access_token(
         httponly=True,
         secure=True,
         samesite="none",
-        domain=".vitask.app",
+        domain="vitask.app",
         path="/" + router_name,
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
     )
