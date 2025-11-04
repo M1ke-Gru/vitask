@@ -10,7 +10,20 @@ vitask.app {
 
 api.vitask.app {
   encode zstd gzip
-  reverse_proxy backend:8000
+  handle / {
+    # Handle CORS preflight requests
+    if_method OPTIONS {
+      header {
+        Access-Control-Allow-Origin "https://vitask.app"
+        Access-Control-Allow-Methods "GET, POST, PATCH, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "Authorization, Content-Type, Set-Cookie, Cookie, X-Requested-With"
+        Access-Control-Allow-Credentials "true"
+        Access-Control-Max-Age "86400"
+      }
+      respond 204
+    }
+    reverse_proxy backend:8000
+  }
   header {
     Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
     X-Content-Type-Options "nosniff"

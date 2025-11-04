@@ -4,9 +4,13 @@ import { useConnection } from "./check_connection";
 import useTasks from "../logic/Tasks";
 import { toErrorMessage } from "../logic/utils/error";
 
+const API_URL =
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.PROD ? "https://api.vitask.app" : "http://localhost:8000");
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
-  withCredentials: false, // normal requests don't need cookies
+  baseURL: API_URL,
+  withCredentials: true, // bearer token mode
   headers: { "Content-Type": "application/json" },
 });
 
@@ -24,7 +28,7 @@ async function refreshAccess(): Promise<string | null> {
   if (!refreshPromise) {
     refreshPromise = axios
       .post(
-        (import.meta.env.VITE_API_URL || "http://localhost:8000") + "/auth/refresh",
+        API_URL + "/auth/refresh",
         {},
         { withCredentials: true } // send HttpOnly cookie to backend
       )

@@ -47,7 +47,7 @@ services:
       migrate:
         condition: service_completed_successfully
     expose:
-      - "8000" # internal only; Caddy will proxy to this
+      - "8000:8000" # internal only; Caddy will proxy to this
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
       interval: 10s
@@ -64,13 +64,13 @@ services:
   frontend:
     build:
       context: ./client
-      args:
-        VITE_API_URL: "https://api.vitask.app"
     depends_on:
       backend:
         condition: service_healthy
     expose:
       - "80"
+    environment:
+      VITE_API_URL: "https://api.vitask.app"
     networks: [app]
     restart: unless-stopped
 
