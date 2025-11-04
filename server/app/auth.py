@@ -11,6 +11,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import select, String, DateTime, update
 from sqlalchemy.orm import Session, Mapped, mapped_column
 from pydantic import BaseModel
+import os
 
 from app.models import UserDB
 
@@ -27,7 +28,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 router_name: str = "auth"
-domain = "vitask.app"
+domain = os.getenv("COOKIE_DOMAIN")
 auth_router = APIRouter(prefix="/" + router_name, tags=[router_name])
 
 

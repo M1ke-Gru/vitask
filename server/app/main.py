@@ -14,7 +14,7 @@ def parse_origins(raw: str) -> list[str]:
 DEFAULT_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://vitask.app",
+    "http://vitask.app",
 ]
 
 raw = os.getenv("ALLOWED_ORIGINS", "")
@@ -27,7 +27,7 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "Set-Cookie", "Cookie", "X-Requested-With"],
     expose_headers=["*"],
 )
 
