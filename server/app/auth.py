@@ -28,7 +28,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 router_name: str = "auth"
-domain = os.getenv("COOKIE_DOMAIN")
+domain = os.getenv("COOKIE_DOMAIN", "vitask.app")
 auth_router = APIRouter(prefix="/" + router_name, tags=[router_name])
 
 
