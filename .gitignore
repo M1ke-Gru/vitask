@@ -1,4 +1,4 @@
 .env
 server/.env
-docker-compose.yaml
+./docker-compose.yaml
 blog-notes.md
