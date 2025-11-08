@@ -50,11 +50,9 @@ async function refreshAccess(): Promise<string | null> {
   return refreshPromise;
 }
 
-// --- Response interceptor with refresh logic ---
 api.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
-    // Handle no response (network outage)
     if (!error.response) {
       if (!useConnection.getState().isReconnecting) {
         useConnection.getState().waitToReconnect(useTasks.getState().onReconnect);
@@ -64,22 +62,25 @@ api.interceptors.response.use(
     }
 
     const status = error.response.status;
-    const url = (error.config?.url ?? "").toString();
     const original = error.config as AxiosRequestConfig & { _retry?: boolean };
 
-    // --- Handle 401: try silent refresh once ---
-    if (status === 401 && !original._retry && !url.includes("/auth/refresh")) {
+    const reqUrl = new URL((original.url ?? "").toString(), API_URL);
+    const isAuthRoute = reqUrl.pathname.startsWith("/auth");
+
+    if (status === 401 && !original._retry && !isAuthRoute) {
       original._retry = true;
+
       const newToken = await refreshAccess();
       if (newToken) {
-        original.headers = original.headers || {};
-        original.headers.Authorization = `Bearer ${newToken}`;
-        return api(original); // retry original request
+        const cfg: AxiosRequestConfig = {
+          ...original,
+          headers: { ...(original.headers ?? {}), Authorization: `Bearer ${newToken}` },
+        };
+        return api(cfg);
       }
     }
 
-    // --- Handle /auth/ errors separately (login/signup/logout) ---
-    if (status === 401 || url.includes("/auth/")) {
+    if (status === 401 || isAuthRoute) {
       useAuth.getState().setAuthError?.(toErrorMessage(error));
     }
 

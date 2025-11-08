@@ -19,6 +19,7 @@ from .database import get_db, Base
 from .services.users import get_user_by_username, create_user, get_user
 from .schemas import UserCreate, UserRead
 from .security import verify_password
+from .models import RefreshSession
 
 ALGORITHM = "HS256"
 # TODO: SECRET_KEY in env
@@ -40,21 +41,6 @@ class Token(BaseModel):
     user_id: int
     revoked: bool = False
     revoked_at: datetime | None = None
-
-
-class RefreshSession(Base):
-    __tablename__ = "refresh_sessions"
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(index=True, nullable=False)
-    jti: Mapped[str] = mapped_column(String(36), unique=True, nullable=False)
-    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
-    revoked: Mapped[bool] = mapped_column(default=False, index=True)
-    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-
-    @staticmethod
-    def now() -> datetime:
-        return datetime.now(timezone.utc)
 
 
 class TokenPayload(BaseModel):

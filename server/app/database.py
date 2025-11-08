@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.engine.url import make_url
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./users.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
 
 url = make_url(DATABASE_URL)
 
