@@ -30,6 +30,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 router_name: str = "auth"
 domain = os.getenv("COOKIE_DOMAIN", "vitask.app")
 auth_router = APIRouter(prefix="/" + router_name, tags=[router_name])
+is_local = domain in ("localhost", "127.0.0.1")
 
 
 class Token(BaseModel):
@@ -170,6 +171,7 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
 
 @auth_router.post("/token", response_model=Token)
 def login_for_tokens(
+    response: Response,
     form: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db),
 ):
@@ -183,15 +185,14 @@ def login_for_tokens(
 
     raw_refresh = issue_refresh_token(db, user.id)
 
-    response = Response()
     response.set_cookie(
         key="refresh_token",
         value=raw_refresh,
         httponly=True,
-        secure=True,
-        samesite="none",
-        domain=domain,
-        path="/" + router_name,
+        secure=not is_local,
+        samesite="lax" if is_local else "none",
+        domain=None if is_local else domain,
+        path="/auth",
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
     )
 
