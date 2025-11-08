@@ -93,7 +93,11 @@ api.interceptors.response.use(
       if (newToken) {
         const cfg: AxiosRequestConfig = {
           ...original,
+          method: (original.method ?? 'get') as any,
+          url: original.url,
+          data: original.data,
           headers: { ...(original.headers ?? {}), Authorization: `Bearer ${newToken}` },
+          maxRedirects: 0,
         };
         return api(cfg);
       }
