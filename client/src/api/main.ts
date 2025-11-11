@@ -40,7 +40,8 @@ async function refreshAccess(): Promise<string | null> {
         return newToken ?? null;
       })
       .catch(() => {
-        useAuth.getState().logout();
+        if (useAuth.getState().token)
+          useAuth.getState().logout();
         return null;
       })
       .finally(() => {
