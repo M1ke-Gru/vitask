@@ -6,6 +6,8 @@ from app.routers import user_router, task_router
 from app.database import Base, engine
 from app.auth import auth_router
 
+from .models import *
+
 
 def parse_origins(raw: str) -> list[str]:
     return [o.strip() for o in raw.split(",") if o.strip()]
@@ -28,7 +30,13 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Set-Cookie", "Cookie", "X-Requested-With"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Set-Cookie",
+        "Cookie",
+        "X-Requested-With",
+    ],
     expose_headers=["*"],
 )
 
