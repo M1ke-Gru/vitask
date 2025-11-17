@@ -1,5 +1,7 @@
 # Vitask — Minimal, Fast, Offline-First Task Manager
 
+**Website:** [vitask.app](https://vitask.app)
+
 Vitask is a **fast, distraction-free task manager** built with a modern offline-first architecture.
 It’s designed to sync instantly and work reliably on unstable connections.
 
@@ -36,6 +38,6 @@ Vitask focuses on **speed, simplicity, and reliability**, with a backend enginee
 - **Keyboard driven, Vim-like interactions**
 - **Tags** to group tasks
 - **Date and time** to start/finish the task
-- **Priority**
+- **Task priority**
 - **Mobile/desktop** apps
 - **Voice assistant** to add tasks
