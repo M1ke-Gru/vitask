@@ -25,7 +25,7 @@ Vitask focuses on **speed, simplicity, and reliability**, with a backend enginee
 | Layer      | Technology                     |
 | ---------- | ------------------------------ |
 | Frontend   | React, Zustand, Tailwind, Vite |
-| Backend    | FastAPI, SQLModel, Python 3.12 |
+| Backend    | FastAPI, SQLAlchemy, Pydantic  |
 | Database   | PostgreSQL                     |
 | Auth       | JWT (access + refresh tokens)  |
 | Deployment | Docker, Docker Compose, Caddy  |
