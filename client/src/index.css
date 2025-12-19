@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* global base */
+@layer base {
+  html {
+    font-family: InterVariable, ui-sans-serif, system-ui;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* optional shared component classes */
+@layer components {
+  .txt-area { @apply placeholder:text-slate-400 placeholder:italic }
+  .btn { @apply active:scale-95 transition rounded-full; }
+}
+

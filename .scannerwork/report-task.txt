@@ -1,0 +1,6 @@
+projectKey=vitask
+serverUrl=https://sonar.mike-birn.com
+serverVersion=25.10.0.114319
+dashboardUrl=https://sonar.mike-birn.com/dashboard?id=vitask
+ceTaskId=8e248de9-36f8-4c82-aa26-fe09b68880a3
+ceTaskUrl=https://sonar.mike-birn.com/api/ce/task?id=8e248de9-36f8-4c82-aa26-fe09b68880a3

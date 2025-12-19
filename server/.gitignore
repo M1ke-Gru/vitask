@@ -1,0 +1,9 @@
+.env
+__pycache__
+.venv
+.secret_key
+*.sqlite
+*.db
+*.db3
+*.s3db
+*.sl3
