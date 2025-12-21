@@ -8,14 +8,14 @@ import jwt
 from jwt import InvalidTokenError
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy import select, String, DateTime, update
-from sqlalchemy.orm import Session, Mapped, mapped_column
+from sqlalchemy import select, update
+from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import os
 
 from app.models import UserDB
 
-from .database import get_db, Base
+from .database import get_db
 from .services.users import get_user_by_username, create_user, get_user
 from .schemas import UserCreate, UserRead
 from .security import verify_password

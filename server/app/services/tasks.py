@@ -38,7 +38,7 @@ def delete_task(db: Session, task_id: int, user_id: int) -> None:
 
 
 def delete_done(db: Session, user_id: int) -> None:
-    stmt = delete(TaskDB).where((TaskDB.user_id == user_id) & (TaskDB.is_done == True))
+    stmt = delete(TaskDB).where((TaskDB.user_id == user_id) & TaskDB.is_done)
     db.execute(stmt)
     db.commit()
 

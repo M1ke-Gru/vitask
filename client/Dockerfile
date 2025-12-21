@@ -4,7 +4,6 @@ WORKDIR /app
 
 # Install deps (dev deps needed for vite build)
 COPY package*.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci
 
 # Pass API URL into the build
 ARG VITE_API_URL
