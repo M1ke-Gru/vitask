@@ -64,13 +64,13 @@ services:
   frontend:
     build:
       context: ./client
+      args:
+        VITE_API_URL: "https://api.vitask.app"
     depends_on:
       backend:
         condition: service_healthy
     expose:
       - "80"
-    environment:
-      VITE_API_URL: "https://api.vitask.app"
     networks: [app, web]
     restart: unless-stopped
 
