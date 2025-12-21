@@ -39,7 +39,7 @@ export default function LoginPopup() {
                 setAuthError("Password must have at least 8 symbols")
               } else {
                 const success = loggingIn ? await loginLogic(username, password) : await signupLogic({ username, email, password })
-                if (success) toggleAuth()
+                if (success && loggingIn) toggleAuth()
               }
             }}>
             <input
