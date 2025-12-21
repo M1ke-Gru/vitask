@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from tests.conftest import TEST_PASSWORD
+from .conftest import TEST_PASSWORD
 
 AUTH_TOKEN_ENDPOINT = "/auth/token"
 

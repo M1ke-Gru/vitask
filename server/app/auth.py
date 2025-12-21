@@ -16,7 +16,7 @@ import os
 from app.models import UserDB
 
 from .database import get_db
-from .services.users import get_user_by_username, create_user, get_user
+from .services.users import create_user, get_user
 from .schemas import UserCreate, UserRead
 from .security import verify_password
 from .models import RefreshSession
@@ -146,14 +146,19 @@ def revoke_all_refresh_tokens(db: Session, user_id: int):
 
 @auth_router.post("/signup", status_code=201, response_model=UserRead)
 def signup(user_in: UserCreate, db: Session = Depends(get_db)):
-    try:
-        get_user_by_username(db, user_in.username)
-    except Exception:
-        return UserRead.model_validate(
-            create_user(db, user_in.username, user_in.email, user_in.password)
-        )
-    else:
+    existing_username = db.scalar(
+        select(UserDB.id).where(UserDB.username == user_in.username)
+    )
+    if existing_username is not None:
         raise HTTPException(400, "A user with the same username exists already.")
+
+    existing_email = db.scalar(select(UserDB.id).where(UserDB.email == user_in.email))
+    if existing_email is not None:
+        raise HTTPException(400, "A user with the same email exists already.")
+
+    return UserRead.model_validate(
+        create_user(db, user_in.username, user_in.email, user_in.password)
+    )
 
 
 @auth_router.post("/token", response_model=Token)
@@ -162,7 +167,7 @@ def login_for_tokens(
     form: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db),
 ):
-    candidate = get_user_by_username(db, form.username)
+    candidate = db.scalar(select(UserDB).where(UserDB.username == form.username))
     if not candidate:
         raise HTTPException(401, "The username or password is incorrect.")
     user = authenticate_user(db, candidate.username, form.password)

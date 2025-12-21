@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -32,21 +33,28 @@ def get_user_by_email(db, email: str) -> UserDB | None:
 
 
 def create_user(db: Session, username: str, email: str, password: str) -> UserDB:
+    user = UserDB(
+        username=username,
+        email=email,
+        password=get_password_hash(password),
+    )
+    db.add(user)
     try:
-        user = UserDB(
-            username=username,
-            email=email,
-            password=get_password_hash(password),
-        )
-        db.add(user)
         db.commit()
-        db.refresh(user)
-    except Exception:
+    except IntegrityError as exc:
+        db.rollback()
+        message = str(getattr(exc, "orig", exc))
+        if "users_username_key" in message or "UNIQUE constraint failed: users.username" in message:
+            raise HTTPException(400, "A user with the same username exists already.")
+        if "users_email_key" in message or "UNIQUE constraint failed: users.email" in message:
+            raise HTTPException(400, "A user with the same email exists already.")
         raise HTTPException(400, "The user could not be added to the db")
-    try:
-        return get_user_by_username(db, username)
-    except Exception:
-        raise HTTPException(401, "User not created or not found")
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(500, "Database error while creating user")
+
+    db.refresh(user)
+    return user
 
 
 def delete_user(db: Session, userid: int):

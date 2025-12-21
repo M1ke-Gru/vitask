@@ -45,7 +45,7 @@ def test_delete_all_done(
     assert r.status_code == 200, r.text
 
     # keep NOT-done tasks
-    expected = [t for t in seed_tasks if not t["is_done"]]
+    expected = [t for t in seed_tasks if not t["isDone"]]
     # (optional) guard against ordering differences:
     expected_sorted = sorted(expected, key=lambda x: x["id"])
     actual_sorted = sorted(r.json(), key=lambda x: x["id"])
@@ -82,7 +82,7 @@ def test_task_change_to_not_done(
 
 def test_task_change_name(client: TestClient, user_access_token: str, seed_task: dict):
     r = client.patch(
-        f"/task/{seed_task['id']}/name/renamed",
+        f"/task/name/{seed_task['id']}/renamed",
         headers={"Authorization": f"Bearer {user_access_token}"},
     )
     assert r.status_code == 200, r.text
