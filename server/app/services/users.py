@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy import select
@@ -7,6 +9,8 @@ from app.security import get_password_hash
 from app.schemas import UserRead
 
 from app.models import UserDB
+
+logger = logging.getLogger(__name__)
 
 
 def get_user(db, user_id: int) -> UserDB:
@@ -43,14 +47,49 @@ def create_user(db: Session, username: str, email: str, password: str) -> UserDB
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        message = str(getattr(exc, "orig", exc))
-        if "users_username_key" in message or "UNIQUE constraint failed: users.username" in message:
+        orig = getattr(exc, "orig", None)
+        message = str(orig or exc)
+        message_lc = message.lower()
+
+        constraint_name = None
+        diag = getattr(orig, "diag", None)
+        if diag is not None:
+            constraint_name = getattr(diag, "constraint_name", None)
+        constraint_name = constraint_name or getattr(orig, "constraint_name", None)
+        constraint_lc = (constraint_name or "").lower()
+
+        is_username_conflict = (
+            "users_username_key" in constraint_lc
+            or "username" in constraint_lc
+            or "users.username" in message_lc
+            or "key (username)" in message_lc
+        )
+        is_email_conflict = (
+            "users_email_key" in constraint_lc
+            or "email" in constraint_lc
+            or "users.email" in message_lc
+            or "key (email)" in message_lc
+        )
+
+        if is_username_conflict:
             raise HTTPException(400, "A user with the same username exists already.")
-        if "users_email_key" in message or "UNIQUE constraint failed: users.email" in message:
+        if is_email_conflict:
             raise HTTPException(400, "A user with the same email exists already.")
-        raise HTTPException(400, "The user could not be added to the db")
+
+        logger.exception(
+            "Database integrity error while creating user (username=%s, email=%s): %s",
+            username,
+            email,
+            message,
+        )
+        raise HTTPException(500, "Database constraint error while creating user")
     except SQLAlchemyError:
         db.rollback()
+        logger.exception(
+            "Database error while creating user (username=%s, email=%s)",
+            username,
+            email,
+        )
         raise HTTPException(500, "Database error while creating user")
 
     db.refresh(user)
