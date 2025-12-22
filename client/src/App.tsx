@@ -16,6 +16,11 @@ export default function App() {
   const connection = useConnection()
 
   useEffect(() => {
+    // Restore session on first load (use refresh cookie if needed).
+    useAuth.getState().bootstrap();
+  }, []);
+
+  useEffect(() => {
     if (!connection.isConnected && !connection.isReconnecting) {
       const timeout = setTimeout(() => {
         connection.waitToReconnect(taskVM.onReconnect);

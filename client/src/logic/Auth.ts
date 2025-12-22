@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import axios from "axios";
 import { login, signup, logout as logoutApi } from "../api/auth";
 import { api } from "../api/main";
 import { getUser } from "../api/user";
@@ -12,6 +13,7 @@ type AuthState = {
   token: string | null;
   user: User | null;
   loading: boolean;
+  bootstrapped: boolean;
 
   loggingIn: boolean;
   postSignUp: boolean;
@@ -25,6 +27,7 @@ type AuthState = {
   clearAuth: () => void;                       // <- local-only logout (no network)
   toggleAuth: () => void;
   toggleLogin: () => void;
+  bootstrap: () => Promise<void>;
   signupLogic: (request: SignupRequest) => Promise<boolean>;
   loginLogic: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;                 // <- server + local
@@ -37,6 +40,7 @@ export const useAuth = create<AuthState>()(
       token: null,
       user: null,
       loading: false,
+      bootstrapped: false,
 
       loggingIn: true,
       postSignUp: false,
@@ -62,6 +66,44 @@ export const useAuth = create<AuthState>()(
 
       toggleAuth: () => set((s) => ({ authenticating: !s.authenticating })),
       toggleLogin: () => set((s) => ({ loggingIn: !s.loggingIn, postSignUp: false })),
+
+      bootstrap: async () => {
+        // In React StrictMode dev, effects may run twice.
+        if (get().bootstrapped) return;
+        set({ bootstrapped: true });
+
+        // If we already have a token (persisted), validate it by fetching the user.
+        // If we don't have one, try to use the HttpOnly refresh cookie to obtain a new access token.
+        set({ loading: true });
+        try {
+          if (!get().token) {
+            try {
+              const baseURL = (api.defaults.baseURL ?? "").toString().replace(/\/+$/, "");
+              if (baseURL) {
+                const res = await axios.post(
+                  baseURL + "/auth/refresh",
+                  {},
+                  { withCredentials: true }
+                );
+                const newToken = res.data?.access_token as string | undefined;
+                if (newToken) get().setToken(newToken);
+              }
+            } catch {
+              // No refresh cookie or refresh failed—treat as logged out.
+            }
+          }
+
+          if (get().token) {
+            const current_user = await getUser();
+            set({ user: current_user, loading: false, postSignUp: false });
+            await useTasks.getState().onReconnect();
+            await useTasks.getState().fetchTasks();
+            return;
+          }
+        } finally {
+          set({ loading: false });
+        }
+      },
 
       signupLogic: async (request) => {
         set({ loading: true, authError: null });
@@ -115,4 +157,3 @@ export const useAuth = create<AuthState>()(
     }
   )
 );
-
