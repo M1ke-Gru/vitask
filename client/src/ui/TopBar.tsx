@@ -13,7 +13,7 @@ export function TopBar() {
   return (
     <div className={`sticky top-0 z-20 flex items-center justify-between gap-3
                     bg-gray-950/70 backdrop-blur my-0 mb-2
-                    border border-gray-950/70 border-b-white/15 px-4 h-16`}>
+                    border border-gray-950/70 border-b-white/15 border-t-white/15 px-4 h-16`}>
       <h1 className="text-blue-50 font-semibold tracking-tight text-2xl">
         Vitask
       </h1>
