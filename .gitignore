@@ -3,3 +3,5 @@ server/.env*
 ./docker-compose.yaml
 blog-notes.md
 client/.env*
+*sonar*
+*scanner*
