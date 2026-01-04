@@ -1,6 +1,16 @@
+try:
+    # In dev, load `.env` automatically (without overriding real env vars).
+    # In production, this is a no-op unless a `.env` file is present.
+    from dotenv import load_dotenv
+
+    load_dotenv(override=False)
+except Exception:
+    pass
+
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
 
 from app.routers.tasks import task_router
 from app.routers.users import user_router
