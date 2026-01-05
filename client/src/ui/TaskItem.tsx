@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import '../App.css'
 import useTasks from '../logic/Tasks'
 
@@ -9,13 +10,23 @@ type TaskItemProps = {
 
 function TaskItem({ id, name, done = false }: Readonly<TaskItemProps>) {
   const taskVM = useTasks()
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const doneStyling = done ? 'hover:bg-gray-700/80' : 'hover:bg-gray-600/80'
   const checkboxId = `task-${id}-done`
 
+  useLayoutEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'inherit'
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+    }
+  }, [name])
+
+  console.log('TaskItem rendering', { id, name }); // Debug: Verify new code is running
+
   return (
     <div
-      className={`group flex items-center gap-2 text-blue-50 p-2.5 w-full m-1 mx-auto
-                  transition-colors duration-100 ease-out opacity-0 animate-fadeInUp rounded-xl ${doneStyling} min-w-0`}
+      className={`group flex items-center gap-2 text-blue-50 p-2.5 m-1
+                  transition-colors duration-100 ease-out opacity-0 animate-fadeInUp rounded-xl ${doneStyling}`}
     >
       <input
         id={checkboxId}
@@ -53,17 +64,25 @@ function TaskItem({ id, name, done = false }: Readonly<TaskItemProps>) {
       </label>
 
       {/* text input */}
-      <input
-        className={`text-xl mx-1 rounded-lg px-2 text-gray-200 ${done ? 'line-through' : ''
-          }`}
-        value={name}
-        onBlur={(e) => taskVM.sendNewTaskName(id, e.target.value)}
-        onChange={(e) => taskVM.changeTaskName(id, e.target.value)}
-        placeholder="Enter name"
-      />
+      <div className="flex-1 min-w-0">
+        <textarea
+          ref={textareaRef}
+          rows={1}
+          className={`block w-full text-xl mx-1 rounded-lg px-2 text-gray-200 bg-transparent focus:outline-none resize-none overflow-hidden min-h-[1.5em] ${done ? 'line-through' : ''}`}
+          value={name}
+          onBlur={(e) => taskVM.sendNewTaskName(id, e.target.value)}
+          onChange={(e) => taskVM.changeTaskName(id, e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              e.currentTarget.blur()
+            }
+          }}
+          placeholder="Enter name"
+        />
+      </div>
     </div>
   )
 }
 
 export default TaskItem
-

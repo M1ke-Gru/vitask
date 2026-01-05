@@ -24,7 +24,7 @@ export default function EnterTaskField() {
           }
         }}
         placeholder="Enter your new task"
-        className="my-auto px-4 px-auto w-full"
+        className="my-auto px-4 flex-1 min-w-0"
       />
       <AddTaskButton add={taskVM.addTask} recording={false} />
     </div>
