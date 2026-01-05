@@ -21,8 +21,6 @@ function TaskItem({ id, name, done = false }: Readonly<TaskItemProps>) {
     }
   }, [name])
 
-  console.log('TaskItem rendering', { id, name }); // Debug: Verify new code is running
-
   return (
     <div
       className={`group flex items-center gap-2 text-blue-50 p-2.5 m-1
