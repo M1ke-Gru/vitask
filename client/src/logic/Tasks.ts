@@ -39,6 +39,8 @@ type TaskListState = TaskListData & {
   toggleShowDone: () => void;
 
   addTask: () => Promise<void>;
+  deleteTask: (id: number) => Promise<void>;
+  remapCategory: (fromId: number, toId: number) => void;
   changeTaskName: (id: number, name: string) => void;
   sendNewTaskName: (id: number, name: string) => Promise<void>;
   toggleTaskDone: (id: number) => Promise<void>;
@@ -136,6 +138,16 @@ const useTasks = create<TaskListState>()(
 
       toggleShowDone: () => {
         set((s) => ({ showDone: !s.showDone }));
+      },
+
+      deleteTask: async (id: number) => {
+        await deleteHelper((task) => task.id === id);
+      },
+
+      remapCategory: (fromId, toId) => {
+        set((s) => ({
+          tasks: s.tasks.map((t) => t.categoryId === fromId ? { ...t, categoryId: toId } : t),
+        }));
       },
 
       addTask: async () => {

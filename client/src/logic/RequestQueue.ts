@@ -124,6 +124,7 @@ type RequestQueueState = {
   queueCategoryCreate: (category: CategoryRead) => void;
   queueCategoryRename: (category: CategoryRead) => void;
   queueCategoryDelete: (id: number) => void;
+  remapTaskCategory: (fromId: number, toId: number) => void;
   run: () => Promise<Job[]>;
   reset: () => void;
 };
@@ -152,6 +153,24 @@ const useRequestQueue = create<RequestQueueState>()((set, get) => {
       mutateQueue((q) => upsertUpdate(q, category.id, makeCategoryRenameJob(category))),
     queueCategoryDelete: (id) =>
       mutateQueue((q) => upsertDelete(q, id, makeCategoryDeleteJob(id))),
+
+    remapTaskCategory: (fromId, toId) => {
+      mutateQueue((q) =>
+        q.map((job) => {
+          if (
+            (job.type === "CREATE" || job.type === "UPDATE") &&
+            "categoryId" in job.toJSON().payload &&
+            (job.toJSON().payload as { categoryId: number }).categoryId === fromId
+          ) {
+            const serialized = job.toJSON();
+            const updated = { ...(serialized.payload as { categoryId: number }), categoryId: toId };
+            if (serialized.key === "task.create") return makeTaskCreateJob(updated as TaskRead);
+            if (serialized.key === "task.update") return makeTaskUpdateJob(updated as TaskRead);
+          }
+          return job;
+        })
+      );
+    },
 
     run: async () => {
       const snapshot = [...get().queue];

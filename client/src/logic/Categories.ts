@@ -10,6 +10,11 @@ import {
 import type { CategoryRead } from "../types/category";
 import useRequestQueue from "./RequestQueue";
 
+// Sentinel ID for the local-only default category (before login)
+export const LOCAL_CATEGORY_ID = -1;
+
+const LOCAL_UNSORTED: CategoryRead = { id: LOCAL_CATEGORY_ID, name: "Unsorted" };
+
 type CategoryListData = {
   categories: CategoryRead[];
   selectedCategoryId: number | null;
@@ -18,8 +23,8 @@ type CategoryListData = {
 };
 
 const initialCategoryListData: CategoryListData = {
-  categories: [],
-  selectedCategoryId: null,
+  categories: [LOCAL_UNSORTED],
+  selectedCategoryId: LOCAL_CATEGORY_ID,
   loading: false,
   error: null,
 };
@@ -44,15 +49,30 @@ const useCategories = create<CategoryListState>()(
         try {
           set({ loading: true, error: null });
           const data = await listCategories();
-          set({ categories: data, loading: false });
-          const { selectedCategoryId } = get();
-          if (
-            data.length > 0 &&
-            (selectedCategoryId === null || !data.find((c) => c.id === selectedCategoryId))
-          ) {
-            set({ selectedCategoryId: data[0].id });
+
+          let serverCategories = data;
+          let mergeTargetId: number;
+
+          if (data.length === 0) {
+            // First login — create the default category on the server using
+            // the local one's name (in case the user renamed it before logging in)
+            const localDefault = get().categories.find((c) => c.id === LOCAL_CATEGORY_ID);
+            const created = await createCategory({ name: localDefault?.name ?? "Unsorted" });
+            serverCategories = [created];
+            mergeTargetId = created.id;
+          } else {
+            // Prefer an existing "Unsorted", otherwise use the first category
+            mergeTargetId = (data.find((c) => c.name === "Unsorted") ?? data[0]).id;
           }
-          return data;
+
+          // Remap any local tasks / queue jobs that referenced the temp category
+          // Import lazily to avoid circular-module issues at init time
+          const { default: useTasks } = await import("./Tasks");
+          useTasks.getState().remapCategory(LOCAL_CATEGORY_ID, mergeTargetId);
+          useRequestQueue.getState().remapTaskCategory(LOCAL_CATEGORY_ID, mergeTargetId);
+
+          set({ categories: serverCategories, loading: false, selectedCategoryId: mergeTargetId });
+          return serverCategories;
         } catch (e: any) {
           set({ loading: false });
           throw e;
@@ -85,6 +105,7 @@ const useCategories = create<CategoryListState>()(
         set((s) => ({
           categories: s.categories.map((c) => (c.id === id ? { ...c, name } : c)),
         }));
+        if (id < 0) return; // local-only category, no server call
         try {
           await renameCategoryApi(id, name);
         } catch {
@@ -99,6 +120,7 @@ const useCategories = create<CategoryListState>()(
             s.selectedCategoryId === id ? (remaining[0]?.id ?? null) : s.selectedCategoryId;
           return { categories: remaining, selectedCategoryId: newSelected };
         });
+        if (id < 0) return; // local-only category, no server call
         try {
           await deleteCategoryApi(id);
         } catch {
