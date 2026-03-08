@@ -47,8 +47,23 @@ input:focus {
   }
 }
 
+@keyframes fadeInUpDone {
+  0% {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.95);
+  }
+  100% {
+    opacity: 0.4;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .animate-fadeInUp {
   animation: fadeInUp 0.1s ease-out forwards;
+}
+
+.animate-fadeInUp-done {
+  animation: fadeInUpDone 0.1s ease-out forwards;
 }
 
 .card {

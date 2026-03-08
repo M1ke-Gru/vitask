@@ -6,14 +6,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# system deps for psycopg (binary wheel often fine; if using source, add build deps)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates uv && \
-    rm -rf /var/lib/apt/lists/*
+    curl ca-certificates && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install uv
 
-COPY requirements.txt .
-RUN uv add -r requirements.txt
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
 
 COPY . .
 
-CMD ["bash", "-lc", "uvicorn app.main:app --host ${UVICORN_HOST:-0.0.0.0} --port ${UVICORN_PORT:-8000}"]
+CMD ["/app/.venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -23,6 +23,7 @@ export default function TaskList() {
               overscrollBehavior: 'contain',
             }}
           >
+            <h1 className="text-white text-2xl p-2.5 m-1">Default</h1>
             {taskVM.tasks.filter(
               t => { if (!t.isDone) return t }
             ).map((t, i, ar) => (

@@ -7,6 +7,8 @@ import { getUser } from "../api/user";
 import type { User } from "../types/user";
 import type { SignupRequest } from "../types/auth";
 import useTasks from "./Tasks";
+import useCategories from "./Categories";
+import useRequestQueue from "./RequestQueue";
 import { toErrorMessage } from "./utils/error";
 
 type AuthState = {
@@ -18,6 +20,7 @@ type AuthState = {
   loggingIn: boolean;
   postSignUp: boolean;
   authenticating: boolean;
+  confirmingLogout: boolean;
 
   hasShown401: boolean;
   authError: string | null;
@@ -27,6 +30,7 @@ type AuthState = {
   clearAuth: () => void;                       // <- local-only logout (no network)
   toggleAuth: () => void;
   toggleLogin: () => void;
+  cancelLogout: () => void;
   bootstrap: () => Promise<void>;
   signupLogic: (request: SignupRequest) => Promise<boolean>;
   loginLogic: (username: string, password: string) => Promise<boolean>;
@@ -45,6 +49,7 @@ export const useAuth = create<AuthState>()(
       loggingIn: true,
       postSignUp: false,
       authenticating: false,
+      confirmingLogout: false,
 
       hasShown401: false,
       authError: null,
@@ -60,12 +65,15 @@ export const useAuth = create<AuthState>()(
       clearAuth: () => {
         // local-only cleanup (used on refresh failure)
         delete api.defaults.headers.common.Authorization;
-        useTasks.setState({ tasks: [] });
+        useTasks.getState().resetOnLogout();
+        useCategories.getState().resetOnLogout();
+        useRequestQueue.getState().reset();
         set({ token: null, user: null, loading: false });
       },
 
       toggleAuth: () => set((s) => ({ authenticating: !s.authenticating })),
       toggleLogin: () => set((s) => ({ loggingIn: !s.loggingIn, postSignUp: false })),
+      cancelLogout: () => set({ confirmingLogout: false }),
 
       bootstrap: async () => {
         // In React StrictMode dev, effects may run twice.
@@ -96,8 +104,9 @@ export const useAuth = create<AuthState>()(
           if (get().token) {
             const current_user = await getUser();
             set({ user: current_user, loading: false, postSignUp: false });
-            await useTasks.getState().onReconnect();
+            await useRequestQueue.getState().run();
             await useTasks.getState().fetchTasks();
+            await useCategories.getState().fetchCategories();
             return;
           }
         } finally {
@@ -125,13 +134,18 @@ export const useAuth = create<AuthState>()(
         const current_user = await getUser();
         set({ user: current_user, loading: false, postSignUp: false });
 
-        await useTasks.getState().onReconnect();
+        await useRequestQueue.getState().run();
         await useTasks.getState().fetchTasks();
+        await useCategories.getState().fetchCategories();
         return true;
       },
 
       logout: async () => {
-        set({ loading: true, authError: null });
+        if (!get().confirmingLogout) {
+          set({ confirmingLogout: true });
+          return;
+        }
+        set({ loading: true, authError: null, confirmingLogout: false });
         try {
           // call server to clear cookie + revoke sessions (ok when authenticated)
           await logoutApi();

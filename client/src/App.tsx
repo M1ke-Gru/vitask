@@ -1,18 +1,18 @@
 import { useEffect } from "react";
-import TaskList from "./ui/TaskList"
+import Main from "./ui/Main"
+import useCategories from "./logic/Categories"
 import { TopBar } from "./ui/TopBar"
+import Sidebar from "./ui/Sidebar"
 import useTasks from "./logic/Tasks"
 import { useAuth } from "./logic/Auth"
 import AuthPopup from "./ui/AuthPopup"
-import { useMediaQuery } from "react-responsive"
-import EnterTaskField from "./ui/EnterTaskField"
+import LogoutPopup from "./ui/LogoutPopup"
 import { useConnection } from "./api/check_connection";
 
 
 export default function App() {
   const taskVM = useTasks()
   const userVM = useAuth()
-  const isMobile = useMediaQuery({ maxWidth: 767 });
   const connection = useConnection()
 
   useEffect(() => {
@@ -23,21 +23,26 @@ export default function App() {
   useEffect(() => {
     if (!connection.isConnected && !connection.isReconnecting) {
       const timeout = setTimeout(() => {
-        connection.waitToReconnect(taskVM.onReconnect);
+        connection.waitToReconnect(async () => {
+        await taskVM.onReconnect();
+        await useCategories.getState().fetchCategories();
+      });
       }, 500);
       return () => clearTimeout(timeout);
     }
   }, [connection.isConnected, connection.isReconnecting]);
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="fixed inset-0 bg-gray-900 flex flex-col">
       <TopBar />
-      <TaskList />
-      {(isMobile && taskVM.tasks.length > 0)
-        && <div className="px-6 mb-2 absolute w-[calc(100vw)] bottom-0 left-0 ">
-          <EnterTaskField />
-        </div>}
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto relative">
+          <Main />
+        </main>
+      </div>
       {userVM.authenticating && <AuthPopup />}
+      {userVM.confirmingLogout && <LogoutPopup />}
     </div>
   )
 }

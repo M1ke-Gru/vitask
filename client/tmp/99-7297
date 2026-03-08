@@ -1,0 +1,16 @@
+import type { TaskRead } from "../types/task";
+
+export async function updateCategory(
+  categoryId: number,
+  category: CategoryCreate
+): Promise<CategoryRead> {
+  const { data } = await api.put<CategoryRead>(`/category/${categoryId}`, category);
+  return data;
+}
+
+export async function listCategoryTasks(
+  categoryId: number
+): Promise<TaskRead[]> {
+  const { data } = await api.get<Array<TaskRead>>(`/category/${categoryId}/tasks`);
+  return data;
+}

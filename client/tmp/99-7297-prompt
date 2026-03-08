@@ -1,0 +1,54 @@
+<Context>
+You receive a selection in neovim that you need to replace with new code.
+The selection's contents may contain notes, incorporate the notes every time if there are some.
+consider the context of the selection and what you are suppose to be implementing
+<SELECTION_LOCATION>
+range(point(22,1),point(22,1))
+</SELECTION_LOCATION>
+<SELECTION_CONTENT>
+
+</SELECTION_CONTENT>
+<FILE_CONTAINING_SELECTION>
+import type { CategoryCreate, CategoryRead } from "../types/category";
+import api from "./auth";
+
+export async function listCategories(): Promise<CategoryRead[]> {
+  const { data } = await api.get<Array<CategoryRead>>("/category/list");
+  return data;
+}
+
+export async function createCategory(
+  category: CategoryCreate
+): Promise<CategoryRead> {
+  const { data } = await api.post<CategoryRead>("/category/create", category);
+  return data;
+}
+
+export async function deleteCategory(
+  categoryId: number
+): Promise<void> {
+  await api.delete(`/category/${categoryId}`);
+}
+
+
+</FILE_CONTAINING_SELECTION>
+
+</Context>
+<Prompt>
+Create updateCategory and listCategoryTasks. 
+</Prompt>
+
+<Location><File>/home/mike/CodingProjects/current/vitask/client/src/api/categories.ts</File><Function>range(point(22,1),point(22,1))</Function></Location>
+<FunctionText></FunctionText>
+<TEMP_FILE>./tmp/99-7297</TEMP_FILE>
+<MustObey>
+NEVER alter any file other than TEMP_FILE.
+never provide the requested changes as conversational output. Return only the code.
+ONLY provide requested changes by writing the change to TEMP_FILE
+
+never attempt to read TEMP_FILE.
+It is purely for output.
+Previous contents, which may not exist, can be written over without worry
+After writing TEMP_FILE once you should be done.  Be done and end the session.
+
+</MustObey>

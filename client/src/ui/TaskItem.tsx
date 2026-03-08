@@ -24,7 +24,7 @@ function TaskItem({ id, name, done = false }: Readonly<TaskItemProps>) {
   return (
     <div
       className={`group flex items-center gap-2 text-blue-50 p-2.5 m-1
-                  transition-colors duration-100 ease-out opacity-0 animate-fadeInUp rounded-xl ${doneStyling}`}
+                  transition-colors duration-100 ease-out rounded-xl ${doneStyling} ${done ? 'animate-fadeInUp-done' : 'opacity-0 animate-fadeInUp'}`}
     >
       <input
         id={checkboxId}
@@ -66,7 +66,7 @@ function TaskItem({ id, name, done = false }: Readonly<TaskItemProps>) {
         <textarea
           ref={textareaRef}
           rows={1}
-          className={`block w-full text-xl mx-1 rounded-lg px-2 text-gray-200 bg-transparent focus:outline-none resize-none overflow-hidden min-h-[1.5em] ${done ? 'line-through' : ''}`}
+          className={`block w-full text-lg md:text-xl mx-1 rounded-lg px-2 text-gray-200 bg-transparent focus:outline-none resize-none overflow-hidden min-h-[1.5em] ${done ? 'line-through' : ''}`}
           value={name}
           onBlur={(e) => taskVM.sendNewTaskName(id, e.target.value)}
           onChange={(e) => taskVM.changeTaskName(id, e.target.value)}

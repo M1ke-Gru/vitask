@@ -27,7 +27,7 @@ services:
       db:
         condition: service_healthy
     working_dir: /app
-    command: ["python", "-m", "alembic", "upgrade", "head"]
+    command: ["/app/.venv/bin/alembic", "upgrade", "head"]
     networks: [app]
     restart: "no"
 
