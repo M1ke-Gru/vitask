@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.security import get_password_hash
-from app.schemas import UserRead
+from app.schemas import UserCreate, UserRead
 
 from app.models import UserDB
 
@@ -36,11 +36,11 @@ def get_user_by_email(db, email: str) -> UserDB | None:
     return user
 
 
-def create_user(db: Session, username: str, email: str, password: str) -> UserDB:
+def create_user(db: Session, user_in: UserCreate) -> UserRead:
     user = UserDB(
-        username=username,
-        email=email,
-        password=get_password_hash(password),
+        username=user_in.username,
+        email=user_in.email,
+        password=get_password_hash(user_in.password),
     )
     db.add(user)
     try:
@@ -78,8 +78,8 @@ def create_user(db: Session, username: str, email: str, password: str) -> UserDB
 
         logger.exception(
             "Database integrity error while creating user (username=%s, email=%s): %s",
-            username,
-            email,
+            user_in.username,
+            user_in.email,
             message,
         )
         raise HTTPException(500, "Database constraint error while creating user")
@@ -87,13 +87,13 @@ def create_user(db: Session, username: str, email: str, password: str) -> UserDB
         db.rollback()
         logger.exception(
             "Database error while creating user (username=%s, email=%s)",
-            username,
-            email,
+            user_in.username,
+            user_in.email,
         )
         raise HTTPException(500, "Database error while creating user")
 
     db.refresh(user)
-    return user
+    return UserRead.model_validate(user)
 
 
 def delete_user(db: Session, userid: int):

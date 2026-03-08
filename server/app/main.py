@@ -14,8 +14,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers.tasks import task_router
 from app.routers.users import user_router
+from app.routers.categories import category_router, create_category
 from app.database import Base, engine
 from app.auth import auth_router
+from app.schemas import CategoryCreate
 
 # Importing models so SQLAlchemy registers all model classes
 from . import models  # noqa: F401
@@ -56,6 +58,7 @@ app.add_middleware(
 app.include_router(user_router)
 app.include_router(auth_router)
 app.include_router(task_router)
+app.include_router(category_router)
 
 
 @app.get("/")

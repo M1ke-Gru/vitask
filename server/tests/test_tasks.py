@@ -2,13 +2,18 @@ from fastapi.testclient import TestClient
 
 
 def test_create_task_success(client: TestClient, user_access_token: str):
-    payload = {"name": "Code", "is_done": "false"}
+    payload = {"name": "Code", "isDone": False}
     r = client.post(
         "/task/create",
         headers={"Authorization": f"Bearer {user_access_token}"},
         json=payload,
     )
     assert r.status_code == 201, r.text
+    body = r.json()
+    assert body["name"] == "Code"
+    assert body["isDone"] is False
+    assert isinstance(body["id"], int)
+    assert isinstance(body["categoryId"], int)
 
 
 def test_get_task(client: TestClient, user_access_token: str, seed_task: dict):
@@ -68,6 +73,9 @@ def test_task_change_to_done(
         headers={"Authorization": f"Bearer {user_access_token}"},
     )
     assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["id"] == seed_task["id"]
+    assert body["isDone"] is True
 
 
 def test_task_change_to_not_done(
@@ -78,6 +86,9 @@ def test_task_change_to_not_done(
         headers={"Authorization": f"Bearer {user_access_token}"},
     )
     assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["id"] == seed_task["id"]
+    assert body["isDone"] is False
 
 
 def test_task_change_name(client: TestClient, user_access_token: str, seed_task: dict):
@@ -86,3 +97,6 @@ def test_task_change_name(client: TestClient, user_access_token: str, seed_task:
         headers={"Authorization": f"Bearer {user_access_token}"},
     )
     assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["id"] == seed_task["id"]
+    assert body["name"] == "renamed"

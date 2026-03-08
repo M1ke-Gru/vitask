@@ -3,24 +3,34 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.errors import ForbiddenException, NotFoundException
-from app.models import TaskDB, UserDB
+from app.models import UserDB
 
-from ..services import tasks as svc
+from ..services import tasks as task_svc
+from ..services import categories as category_svc
 from ..auth import get_current_active_user
 from ..schemas import TaskCreate, TaskRead
 
 task_router = APIRouter(prefix="/task", tags=["tasks"])
 
 
-@task_router.get("/list")
-def list_tasks_router(
-    db: Session = Depends(get_db), user: UserDB = Depends(get_current_active_user)
+@task_router.get("/list", response_model=list[TaskRead])
+def list_tasks(
+    db: Session = Depends(get_db),
+    user: UserDB = Depends(get_current_active_user),
 ):
-    print("DEBUG: creating for user_id", user.id)
-    tasks: list[TaskRead] = [
-        TaskRead.model_validate(task) for task in svc.list_tasks(db, user.id)
+    return task_svc.list_tasks(db, user.id)
+
+
+@task_router.get("/list_category_tasks/{category_id}", response_model=list[TaskRead])
+def list_category_tasks(
+    category_id: int,
+    db: Session = Depends(get_db),
+    user: UserDB = Depends(get_current_active_user),
+):
+    return [
+        TaskRead.model_validate(t)
+        for t in category_svc.list_category_tasks(db, category_id, user.id)
     ]
-    return tasks
 
 
 # Put only after all of the other getters for /task
@@ -29,7 +39,7 @@ def get_task(
     task_id: int, user=Depends(get_current_active_user), db: Session = Depends(get_db)
 ):
     try:
-        task = TaskRead.model_validate(svc.fetch_task(db, task_id, user.id))
+        task = task_svc.fetch_task(db, task_id, user.id)
     except NotFoundException as e:
         raise HTTPException(404, str(e))
     except ForbiddenException as e:
@@ -43,14 +53,11 @@ def create_task(
     db: Session = Depends(get_db),
     user: UserDB = Depends(get_current_active_user),
 ):
-    print("DEBUG: creating for user_id", user.id)
     try:
-        task_db: TaskDB = svc.create_task(
-            db, task_name=task.name, is_done=task.is_done, user_id=user.id
-        )
+        created = task_svc.create_task(db, task, user.id)
     except Exception as e:
         raise HTTPException(400, str(e))
-    return TaskRead.model_validate(task_db)
+    return created
 
 
 @task_router.delete("/delete/{task_id}")
@@ -60,14 +67,14 @@ def delete_task(
     user: UserDB = Depends(get_current_active_user),
 ):
     try:
-        svc.delete_task(db, task_id, user.id)
+        task_svc.delete_task(db, task_id, user.id)
     except NotFoundException as e:
         raise HTTPException(404, str(e))
     except ForbiddenException as e:
         raise HTTPException(401, str(e))
 
 
-@task_router.patch("/is_done/{task_id}/{is_done}")
+@task_router.patch("/is_done/{task_id}/{is_done}", response_model=TaskRead)
 def change_done(
     task_id: int,
     is_done: bool,
@@ -75,14 +82,14 @@ def change_done(
     user: UserDB = Depends(get_current_active_user),
 ):
     try:
-        svc.change_done(db, task_id, is_done, user_id=user.id)
+        return task_svc.change_done(db, task_id, is_done, user_id=user.id)
     except NotFoundException as e:
         raise HTTPException(404, str(e))
     except ForbiddenException as e:
         raise HTTPException(401, str(e))
 
 
-@task_router.patch("/name/{task_id}/{name}")
+@task_router.patch("/name/{task_id}/{name}", response_model=TaskRead)
 def change_name(
     task_id: int,
     name: str,
@@ -90,24 +97,38 @@ def change_name(
     user: UserDB = Depends(get_current_active_user),
 ):
     try:
-        svc.change_name(db, task_id, name, user_id=user.id)
+        return task_svc.change_name(db, task_id, name, user_id=user.id)
     except NotFoundException as e:
         raise HTTPException(404, str(e))
     except ForbiddenException as e:
         raise HTTPException(401, str(e))
 
 
+@task_router.delete("/category_done/{category_id}")
+def delete_category_done(
+    category_id: int,
+    db: Session = Depends(get_db),
+    user: UserDB = Depends(get_current_active_user),
+):
+    task_svc.delete_category_done(db, category_id, user.id)
+
+
 @task_router.delete("/done")
 def delete_all_done(
     db: Session = Depends(get_db), user: UserDB = Depends(get_current_active_user)
 ):
-    svc.delete_done(db, user_id=user.id)
+    task_svc.delete_all_done(db, user_id=user.id)
 
 
-@task_router.patch("/update")
+@task_router.patch("/update", response_model=TaskRead)
 def task_update(
     task: TaskRead,
     db: Session = Depends(get_db),
     user: UserDB = Depends(get_current_active_user),
 ):
-    svc.update_task(task, db, user.id)
+    try:
+        return task_svc.update_task(task, db, user.id)
+    except NotFoundException as e:
+        raise HTTPException(404, str(e))
+    except ForbiddenException as e:
+        raise HTTPException(401, str(e))

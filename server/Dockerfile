@@ -8,11 +8,11 @@ WORKDIR /app
 
 # system deps for psycopg (binary wheel often fine; if using source, add build deps)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates && \
+    curl ca-certificates uv && \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN uv add -r requirements.txt
 
 COPY . .
 

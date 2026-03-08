@@ -20,12 +20,7 @@ class UserDB(Base):
     )
     password: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    tasks: Mapped[list[TaskDB]] = relationship(
-        back_populates="user",
-        cascade="all, delete-orphan",
-    )
-
-    tags: Mapped[list[TagDB]] = relationship(
+    categories: Mapped[list[CategoryDB]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
     )
@@ -36,56 +31,42 @@ class UserDB(Base):
     )
 
 
+class CategoryDB(Base):
+    __tablename__ = "categories"
+    __table_args__ = (
+        UniqueConstraint("user_id", "name", name="uq_category_user_name"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(60), nullable=False)
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"), nullable=False, index=True
+    )
+    user: Mapped[UserDB] = relationship(back_populates="categories")
+
+    tasks: Mapped[list["TaskDB"]] = relationship(
+        back_populates="category",
+        cascade="all, delete-orphan",
+    )
+
+
 class TaskDB(Base):
     __tablename__ = "tasks"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(60), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
     is_done: Mapped[bool] = mapped_column(nullable=False, default=False)
-
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"), nullable=False, index=True
+    due_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
     )
-    user: Mapped[UserDB] = relationship(back_populates="tasks")
+    estimated_duration_s: Mapped[int | None] = mapped_column(nullable=True)
 
-    task_tags: Mapped[list[TaskTagDB]] = relationship(
-        back_populates="task",
-        cascade="all, delete-orphan",
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("categories.id"), nullable=False, index=True
     )
-
-
-class TagDB(Base):
-    __tablename__ = "tags"
-    __table_args__ = (UniqueConstraint("user_id", "name", name="uq_tags_user_name"),)
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"), nullable=False, index=True
-    )
-    name: Mapped[str] = mapped_column(String(30), nullable=False)
-
-    user: Mapped[UserDB] = relationship(back_populates="tags")
-
-    task_tags: Mapped[list[TaskTagDB]] = relationship(
-        back_populates="tag",
-        cascade="all, delete-orphan",
-    )
-
-
-class TaskTagDB(Base):
-    """
-    Association object mapping for tasks <-> tags.
-    This is the recommended approach when you might later add metadata on the link
-    (e.g. created_at, added_by, ordering, etc.). :contentReference[oaicite:1]{index=1}
-    """
-
-    __tablename__ = "task_tag"
-
-    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), primary_key=True)
-    tag_id: Mapped[int] = mapped_column(ForeignKey("tags.id"), primary_key=True)
-
-    task: Mapped[TaskDB] = relationship(back_populates="task_tags")
-    tag: Mapped[TagDB] = relationship(back_populates="task_tags")
+    category: Mapped[CategoryDB] = relationship(back_populates="tasks")
 
 
 class RefreshSession(Base):

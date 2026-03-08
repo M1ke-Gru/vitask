@@ -14,10 +14,11 @@ from pydantic import BaseModel
 import os
 
 from app.models import UserDB
+from app.services.categories import create_category
 
 from .database import get_db
 from .services.users import create_user, get_user
-from .schemas import UserCreate, UserRead
+from .schemas import CategoryCreate, UserCreate, UserRead
 from .security import verify_password
 from .models import RefreshSession
 
@@ -156,9 +157,13 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
     if existing_email is not None:
         raise HTTPException(400, "A user with the same email exists already.")
 
-    return UserRead.model_validate(
-        create_user(db, user_in.username, user_in.email, user_in.password)
-    )
+    user = create_user(db, user_in)
+    if not user:
+        raise HTTPException(500, "Failed to create the user.")
+
+    create_category(category_name="Unsorted", db=db, user_id=get_user(db, user.id).id)
+
+    return user
 
 
 @auth_router.post("/token", response_model=Token)

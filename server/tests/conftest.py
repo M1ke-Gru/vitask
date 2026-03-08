@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from uuid import uuid4
 
@@ -11,40 +11,28 @@ from app import models
 
 TEST_PASSWORD = "P@SSWORD"
 
-engine = create_engine(
-    "sqlite+pysqlite:///:memory:",
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def _create_schema():
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
-
-
 @pytest.fixture()
-def db_session():
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
-
-    session.begin_nested()
-
-    @event.listens_for(session, "after_transaction_end")
-    def _restart_savepoint(sess, trans):
-        if trans.nested and not sess.is_active:
-            sess.begin_nested()
-
+def db_session() -> Session:
+    # New in-memory DB per test (so commits inside services can't leak across tests).
+    engine = create_engine(
+        "sqlite+pysqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(bind=engine)
+    TestingSessionLocal = sessionmaker(
+        bind=engine,
+        autocommit=False,
+        autoflush=False,
+        expire_on_commit=False,
+    )
+    session = TestingSessionLocal()
     try:
         yield session
     finally:
         session.close()
-        transaction.rollback()
-        connection.close()
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
 
 
 @pytest.fixture()
@@ -85,7 +73,7 @@ def user_access_token(client: TestClient, seed_user: dict) -> str:
 
 @pytest.fixture(scope="function")
 def seed_task(client: TestClient, user_access_token: str) -> dict:
-    payload = {"name": "Code", "is_done": "false"}
+    payload = {"name": "Code", "isDone": False}
     r = client.post(
         "/task/create",
         headers={"Authorization": f"Bearer {user_access_token}"},
@@ -98,10 +86,10 @@ def seed_task(client: TestClient, user_access_token: str) -> dict:
 @pytest.fixture(scope="function")
 def seed_tasks(client: TestClient, user_access_token: str) -> list[dict]:
     payload = [
-        {"name": "Code", "is_done": "false"},
-        {"name": "Do dishes", "is_done": "true"},
-        {"name": "Study", "is_done": "true"},
-        {"name": "Clean my room", "is_done": "false"},
+        {"name": "Code", "isDone": False},
+        {"name": "Do dishes", "isDone": True},
+        {"name": "Study", "isDone": True},
+        {"name": "Clean my room", "isDone": False},
     ]
     responses = []
     for task in payload:
