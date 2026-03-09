@@ -1,4 +1,5 @@
 @import "tailwindcss";
+
 /* your component styles / animations only */
 
 #root {
@@ -6,36 +7,114 @@
   padding: 0;
 }
 
-.logo {
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-input:focus {
-  outline: none;
+/* ── Design system ── */
+:root {
+  --bg:             #111210;
+  --sidebar-bg:     #0e0f0d;
+  --text-primary:   #e8e6df;
+  --text-secondary: #8a8880;
+  --text-muted:     #6b6965;
+  --border:         rgba(255,255,255,0.15);
+  --accent:         #c8b89a;
+  --accent-dim:     rgba(200,184,154,0.12);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.font-display { font-family: 'Satoshi', ui-sans-serif, system-ui; }
+.font-body    { font-family: 'Satoshi', ui-sans-serif, system-ui; }
+
+.jot-bg         { background-color: var(--bg); }
+.jot-sidebar-bg { background-color: var(--sidebar-bg); }
+.jot-text       { color: var(--text-primary); }
+.jot-text-sec   { color: var(--text-secondary); }
+.jot-text-muted { color: var(--text-muted); }
+.jot-border     { border-color: var(--border); }
+.jot-divider    { border-bottom: 1.5px solid var(--border); }
+.jot-divider-r  { border-right: 1.5px solid var(--border); }
+.jot-placeholder::placeholder { color: var(--text-muted); }
+
+/* ── Grain overlay ── */
+.grain::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* ── Task row animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.task-row {
+  opacity: 0;
+  animation: fadeUp 0.25s ease forwards;
 }
 
+@keyframes checkPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); }
+  70%  { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+.check-pop { animation: checkPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+@keyframes textStrike {
+  0%   { opacity: 1;   transform: translateX(0); }
+  40%  { opacity: 0.4; transform: translateX(6px); }
+  100% { opacity: 1;   transform: translateX(0); }
+}
+@keyframes textUnstrike {
+  0%   { opacity: 1;   transform: translateX(0); }
+  40%  { opacity: 0.4; transform: translateX(-6px); }
+  100% { opacity: 1;   transform: translateX(0); }
+}
+.text-strike   { animation: textStrike   0.3s cubic-bezier(0.34, 1.2, 0.64, 1) forwards; }
+.text-unstrike { animation: textUnstrike 0.3s cubic-bezier(0.34, 1.2, 0.64, 1) forwards; }
+
+/* ── Progress bar ── */
+.progress-fill { transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+
+/* ── Wordmark ── */
+.wordmark-o { color: var(--accent); }
+
+/* ── Interactive states ── */
+.task-row:hover       { background: rgba(255,255,255,0.02); }
+.btn-icon-jot:hover   { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.btn-logout-jot:hover { border-color: #8b4a4a; color: #c47a7a; }
+.view-sel:hover       { color: var(--text-primary); }
+.list-item:hover      { color: var(--text-primary); background: rgba(255,255,255,0.03); border-radius: 6px; }
+
+.list-item-active {
+  background: var(--accent-dim) !important;
+  color: var(--accent) !important;
+  border-radius: 6px;
+}
+
+/* ── Toggle switch ── */
+.toggle-track {
+  width: 32px; height: 18px;
+  border-radius: 9px;
+  background: var(--text-muted);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle-track.on { background: var(--accent); }
+.toggle-thumb {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.toggle-track.on .toggle-thumb { transform: translateX(14px); }
+
+/* ── Legacy animations (kept for compatibility) ── */
 @keyframes fadeInUp {
   0% {
     opacity: 0;
@@ -66,6 +145,12 @@ input:focus {
   animation: fadeInUpDone 0.1s ease-out forwards;
 }
 
-.card {
-  padding: 2em;
+input:focus {
+  outline: none;
+}
+
+/* ── Auth popup ── */
+@layer components {
+  .txt-area { @apply placeholder:text-slate-400 placeholder:italic }
+  .btn { @apply active:scale-95 transition rounded-full; }
 }

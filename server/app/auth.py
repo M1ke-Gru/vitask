@@ -14,7 +14,6 @@ from pydantic import BaseModel
 import os
 
 from app.models import UserDB
-from app.services.categories import create_category
 
 from .database import get_db
 from .services.users import create_user, get_user
@@ -160,8 +159,6 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
     user = create_user(db, user_in)
     if not user:
         raise HTTPException(500, "Failed to create the user.")
-
-    create_category(category_name="Unsorted", db=db, user_id=get_user(db, user.id).id)
 
     return user
 

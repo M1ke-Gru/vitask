@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react"
 import useCategories from "../logic/Categories"
 import useTasks from "../logic/Tasks"
+import { useAuth } from "../logic/Auth"
+import { PlusIcon } from "./icons"
 
 export default function Sidebar() {
   const catVM = useCategories()
   const taskVM = useTasks()
+  const userVM = useAuth()
   const [isAdding, setIsAdding] = useState(false)
   const [newName, setNewName] = useState("")
   const [menuOpenFor, setMenuOpenFor] = useState<number | null>(null)
@@ -45,112 +48,123 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="hidden md:flex flex-col w-56 flex-shrink-0 border-r border-white/10 bg-gray-800/30 py-4 pt-6 px-3 gap-6">
+    <aside className="jot-sidebar-bg jot-divider-r relative z-10 hidden md:flex flex-col w-52 shrink-0 pt-8 pb-8 px-4">
+      <h1 className="text-3xl font-normal leading-none tracking-tight px-2 mb-8 jot-text">
+        J<span className="wordmark-o">o</span>t
+      </h1>
 
-      <div className="flex flex-col gap-0.5">
-        <p className="text-xs text-gray-500 uppercase tracking-widest mb-2 px-2">Categories</p>
-        <nav className="flex flex-col gap-0.5">
-          {catVM.categories.map((c) => (
-            <div key={c.id} className="relative group/item">
-              {renamingId === c.id ? (
-                <input
-                  autoFocus
-                  value={renameValue}
-                  onChange={(e) => setRenameValue(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") submitRename()
-                    if (e.key === "Escape") { setRenamingId(null); setRenameValue("") }
+      <p className="text-[10px] tracking-widest uppercase jot-text-muted font-medium px-2 mb-2">Categories</p>
+      <nav className="flex flex-col gap-0.5 mb-3">
+        {catVM.categories.map((c) => (
+          <div key={c.id} className="relative group/item">
+            {renamingId === c.id ? (
+              <input
+                autoFocus
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") submitRename()
+                  if (e.key === "Escape") { setRenamingId(null); setRenameValue("") }
+                }}
+                onBlur={submitRename}
+                className="jot-placeholder w-full bg-transparent outline-none text-sm jot-text border-b jot-border pb-1 px-2"
+              />
+            ) : (
+              <>
+                <button
+                  onClick={() => catVM.selectCategory(c.id)}
+                  className={`list-item w-full text-left text-sm px-2 py-1.5 pr-8 transition-colors outline-none jot-text-sec
+                    ${c.id === catVM.selectedCategoryId ? "list-item-active" : ""}`}
+                >
+                  {c.name}
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setMenuOpenFor(c.id === menuOpenFor ? null : c.id)
                   }}
-                  onBlur={submitRename}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white text-sm outline-none border border-blue-500/50"
-                />
-              ) : (
-                <>
-                  <button
-                    onClick={() => catVM.selectCategory(c.id)}
-                    className={`w-full text-left px-3 py-2 pr-8 rounded-lg text-sm transition-colors outline-none
-                      ${c.id === catVM.selectedCategoryId
-                        ? "bg-white/10 text-white font-medium"
-                        : "text-gray-400 hover:text-white hover:bg-white/5"}`}
-                  >
-                    {c.name}
-                  </button>
+                  className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity w-6 h-6 rounded flex items-center justify-center jot-text-muted hover:jot-text text-base leading-none tracking-widest"
+                >
+                  ···
+                </button>
 
-                  {/* ··· button — visible on hover */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setMenuOpenFor(c.id === menuOpenFor ? null : c.id)
-                    }}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 text-base leading-none tracking-widest"
+                {menuOpenFor === c.id && (
+                  <div
+                    ref={menuRef}
+                    className="absolute left-0 right-0 top-full mt-1 jot-sidebar-bg border jot-border rounded-lg shadow-xl z-30 py-1"
                   >
-                    ···
-                  </button>
-
-                  {/* Dropdown menu */}
-                  {menuOpenFor === c.id && (
-                    <div
-                      ref={menuRef}
-                      className="absolute left-0 right-0 top-full mt-1 bg-gray-800 border border-white/10 rounded-lg shadow-xl z-30 py-1"
+                    <button
+                      onClick={() => startRename(c.id, c.name)}
+                      className="w-full text-left px-3 py-2 text-sm jot-text-sec hover:jot-text transition-colors"
+                      style={{ color: "var(--text-secondary)" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}
                     >
-                      <button
-                        onClick={() => startRename(c.id, c.name)}
-                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
-                      >
-                        Rename
-                      </button>
-                      <button
-                        onClick={() => { catVM.deleteCategory(c.id); setMenuOpenFor(null) }}
-                        disabled={catVM.categories.length <= 1}
-                        className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          ))}
-        </nav>
+                      Rename
+                    </button>
+                    <button
+                      onClick={() => { catVM.deleteCategory(c.id); setMenuOpenFor(null) }}
+                      disabled={catVM.categories.length <= 1}
+                      className="w-full text-left px-3 py-2 text-sm text-red-400/70 hover:text-red-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        ))}
+      </nav>
 
-        {isAdding ? (
+      {isAdding ? (
+        <div className="px-2 mb-4">
           <input
             autoFocus
+            className="jot-placeholder w-full bg-transparent outline-none text-sm jot-text border-b jot-border pb-1"
+            placeholder="List name…"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleAdd()
-              if (e.key === "Escape") { setIsAdding(false); setNewName("") }
+              if (e.key === "Escape") setIsAdding(false)
             }}
-            onBlur={handleAdd}
-            placeholder="Category name"
-            className="mt-0.5 w-full px-3 py-2 rounded-lg bg-gray-800 text-white text-sm outline-none border border-blue-500/50"
+            onBlur={() => { if (!newName.trim()) setIsAdding(false) }}
           />
-        ) : (
-          <button
-            onClick={() => setIsAdding(true)}
-            className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-300 transition-colors outline-none"
-          >
-            + New list
-          </button>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-1 border-t border-white/10 pt-6">
-        <p className="text-xs text-gray-500 uppercase tracking-widest mb-2 px-2">Filters</p>
+        </div>
+      ) : (
         <button
-          onClick={taskVM.toggleShowDone}
-          className="flex items-center justify-between px-2 py-2 rounded-lg text-sm text-gray-400
-                     hover:text-white hover:bg-white/5 transition-colors outline-none"
+          onClick={() => setIsAdding(true)}
+          className="flex items-center gap-2 text-sm jot-text-muted px-2 py-1.5 transition-colors mb-4"
+          style={{ opacity: 0.7 }}
+          onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
+          onMouseLeave={e => (e.currentTarget.style.opacity = "0.7")}
         >
-          <p className="ml-0 pl-0">Show completed</p>
-          <div className={`w-8 h-4 rounded-full ml-auto transition-colors relative flex-shrink-0 ${taskVM.showDone ? "bg-blue-500" : "bg-gray-600"}`}>
-            <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${taskVM.showDone ? "translate-x-4" : "translate-x-0.5"}`} />
-          </div>
+          <PlusIcon /> <span>New list</span>
         </button>
+      )}
+
+      <div className="mx-2 mb-5" style={{ height: "1.5px", background: "var(--border)" }} />
+
+      <p className="text-[10px] tracking-widest uppercase jot-text-muted font-medium px-2 mb-3">Filters</p>
+      <div className="flex items-center justify-between px-2 mb-2">
+        <span className="text-sm jot-text-sec">Show completed</span>
+        <div
+          className={`toggle-track ${taskVM.showDone ? "on" : ""}`}
+          onClick={taskVM.toggleShowDone}
+        >
+          <div className="toggle-thumb" />
+        </div>
       </div>
 
+      <div className="flex-1" />
+      <button
+        onClick={() => userVM.user ? userVM.logout() : userVM.toggleAuth()}
+        className="btn-logout-jot text-[11px] font-medium tracking-widest uppercase jot-text-muted border jot-border px-3 py-1.5 rounded-full transition-colors mx-2"
+      >
+        {userVM.user ? "Log out" : "Log in"}
+      </button>
     </aside>
   )
 }

@@ -16,7 +16,6 @@ export default function App() {
   const connection = useConnection()
 
   useEffect(() => {
-    // Restore session on first load (use refresh cookie if needed).
     useAuth.getState().bootstrap();
   }, []);
 
@@ -24,19 +23,19 @@ export default function App() {
     if (!connection.isConnected && !connection.isReconnecting) {
       const timeout = setTimeout(() => {
         connection.waitToReconnect(async () => {
-        await taskVM.onReconnect();
-        await useCategories.getState().fetchCategories();
-      });
+          await taskVM.onReconnect();
+          await useCategories.getState().fetchCategories();
+        });
       }, 500);
       return () => clearTimeout(timeout);
     }
   }, [connection.isConnected, connection.isReconnecting]);
 
   return (
-    <div className="fixed inset-0 bg-gray-900 flex flex-col">
-      <TopBar />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
+    <div className="grain font-body fixed inset-0 jot-bg jot-text flex">
+      <Sidebar />
+      <div className="relative z-10 flex flex-col flex-1 overflow-hidden">
+        <TopBar />
         <main className="flex-1 overflow-y-auto relative">
           <Main />
         </main>

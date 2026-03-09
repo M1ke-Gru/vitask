@@ -1,10 +1,12 @@
-import "../App.css";
 import useTasks from "../logic/Tasks";
-import { useState } from "react";
+import { PlusIcon } from "./icons";
 
-export default function EnterTaskField() {
+type EnterTaskFieldProps = {
+  animIndex?: number
+}
+
+export default function EnterTaskField({ animIndex = 0 }: EnterTaskFieldProps) {
   const taskVM = useTasks();
-  const [isEditing, setIsEditing] = useState(false);
 
   function submit() {
     if (taskVM.draft.trim()) {
@@ -12,51 +14,28 @@ export default function EnterTaskField() {
     } else {
       taskVM.setDraft("");
     }
-    setIsEditing(false);
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      submit();
-    }
-    if (e.key === "Escape") {
-      taskVM.setDraft("");
-      setIsEditing(false);
-    }
-  }
-
-  if (!isEditing) {
-    return (
-      <button
-        onClick={() => setIsEditing(true)}
-        className="flex items-center gap-2 w-full p-2.5 m-1 rounded-xl
-                   text-gray-500 hover:text-gray-300 transition-colors"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-          className="w-6 h-6 text-blue-500 flex-shrink-0">
-          <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-        </svg>
-        <span className="text-lg md:text-xl pl-3">Add task</span>
-      </button>
-    );
   }
 
   return (
-    <div className="flex items-center gap-2 p-2.5 m-1 rounded-xl">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-        className="w-6 h-6 text-blue-500 flex-shrink-0">
-        <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-      </svg>
+    <div
+      className="task-row flex items-center px-7 md:px-10 h-16 jot-divider gap-4"
+      style={{ animationDelay: `${animIndex * 0.03}s` }}
+    >
+      <button
+        onClick={submit}
+        className="btn-icon-jot w-5 h-5 rounded-full border jot-border flex-shrink-0 flex items-center justify-center jot-text-muted transition-colors"
+      >
+        <PlusIcon />
+      </button>
       <input
-        autoFocus
+        className="jot-placeholder flex-1 bg-transparent outline-none text-[15px] jot-text tracking-tight"
+        placeholder="Add a task…"
         value={taskVM.draft}
         onChange={(e) => taskVM.setDraft(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onBlur={submit}
-        placeholder="New task"
-        className="flex-1 bg-transparent text-base md:text-xl text-gray-200 placeholder-gray-500
-                   outline-none rounded-lg px-1"
+        onKeyDown={(e) => {
+          if (e.key === "Enter") submit()
+          if (e.key === "Escape") taskVM.setDraft("")
+        }}
       />
     </div>
   );

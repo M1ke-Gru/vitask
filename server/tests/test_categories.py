@@ -7,8 +7,7 @@ def test_list_categories_default(client: TestClient, user_access_token: str):
         headers={"Authorization": f"Bearer {user_access_token}"},
     )
     assert r.status_code == 200, r.text
-    assert len(r.json()) == 1
-    assert r.json()[0]["name"] == "Unsorted"
+    assert r.json() == []
 
 
 def test_category_crud(client: TestClient, user_access_token: str):

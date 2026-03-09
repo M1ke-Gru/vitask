@@ -1,9 +1,10 @@
+@import "./assets/fonts/satoshi.css";
 @import "tailwindcss";
 
 /* global base */
 @layer base {
   html {
-    font-family: InterVariable, ui-sans-serif, system-ui;
+    font-family: 'Satoshi', ui-sans-serif, system-ui;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

@@ -71,7 +71,9 @@ const useCategories = create<CategoryListState>()(
           useTasks.getState().remapCategory(LOCAL_CATEGORY_ID, mergeTargetId);
           useRequestQueue.getState().remapTaskCategory(LOCAL_CATEGORY_ID, mergeTargetId);
 
-          set({ categories: serverCategories, loading: false, selectedCategoryId: mergeTargetId });
+          const currentId = get().selectedCategoryId;
+          const validId = serverCategories.find((c) => c.id === currentId)?.id ?? mergeTargetId;
+          set({ categories: serverCategories, loading: false, selectedCategoryId: validId });
           return serverCategories;
         } catch (e: any) {
           set({ loading: false });
