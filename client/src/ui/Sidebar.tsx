@@ -159,12 +159,14 @@ export default function Sidebar() {
       </div>
 
       <div className="flex-1" />
-      <button
-        onClick={() => userVM.user ? userVM.logout() : userVM.toggleAuth()}
-        className="btn-logout-jot text-[11px] font-medium tracking-widest uppercase jot-text-muted border jot-border px-3 py-1.5 rounded-full transition-colors mx-2"
-      >
-        {userVM.user ? "Log out" : "Log in"}
-      </button>
+      {userVM.bootstrapped && (
+        <button
+          onClick={() => userVM.user ? userVM.logout() : userVM.toggleAuth()}
+          className="btn-logout-jot text-[11px] font-medium tracking-widest uppercase jot-text-muted border jot-border px-3 py-1.5 rounded-full transition-colors mx-2"
+        >
+          {userVM.user ? "Log out" : "Log in"}
+        </button>
+      )}
     </aside>
   )
 }

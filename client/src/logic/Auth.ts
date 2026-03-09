@@ -161,7 +161,7 @@ export const useAuth = create<AuthState>()(
     }),
     {
       name: "auth",
-      partialize: (s) => ({ token: s.token, user: s.user }), // persisted subset
+      partialize: (s) => ({ token: s.token }), // user is derived after bootstrap, never persisted
       onRehydrateStorage: () => (rehydrated) => {
         // defensive: store might be empty on first load
         if (rehydrated?.token) {

@@ -132,12 +132,14 @@ export function TopBar() {
               )}
             </div>
 
-            <button
-              onClick={() => userVM.user ? userVM.logout() : userVM.toggleAuth()}
-              className="btn-logout-jot text-[11px] font-medium tracking-widest uppercase jot-text-sec border jot-border px-3.5 py-1.5 rounded-full transition-colors"
-            >
-              {userVM.user ? "Log out" : "Log in"}
-            </button>
+            {userVM.bootstrapped && (
+              <button
+                onClick={() => userVM.user ? userVM.logout() : userVM.toggleAuth()}
+                className="btn-logout-jot text-[11px] font-medium tracking-widest uppercase jot-text-sec border jot-border px-3.5 py-1.5 rounded-full transition-colors"
+              >
+                {userVM.user ? "Log out" : "Log in"}
+              </button>
+            )}
           </div>
         </div>
 
