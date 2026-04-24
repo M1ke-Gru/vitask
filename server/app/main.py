@@ -72,3 +72,5 @@ async def health():
 
 
 Base.metadata.create_all(engine)
+
+create_category(CategoryCreate(name="Inbox"))
